@@ -1,0 +1,22 @@
+.tasks-toolbar__controls {
+  display: grid;
+  align-items: center;
+  gap: 24px;
+  grid-template-columns: 1fr auto 1fr;
+}
+
+.tasks-toolbar__controls > .new-task-button {
+  justify-self: end;
+}
+
+@media (max-width: 800px) {
+  .tasks-toolbar__controls {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tasks-toolbar__controls > .new-task-button {
+    align-self: flex-end;
+  }
+}

@@ -1,0 +1,136 @@
+:root {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --ink: #141413;
+  --muted: #6c6a64;
+  --green: #b3bd95;
+  --green-dark: #8e8a25;
+  --green-pale: #efe9de;
+  --cream: #faf9f5;
+  --paper: #fffdfa;
+  --error: #c64545;
+}
+
+html, body, .dashboard-page { color: var(--ink); background: var(--cream); }
+button:focus-visible, a:focus-visible, input:focus-visible { outline-color: rgba(204, 120, 92, .42); }
+h1, h2, .welcome-copy h1, .dashboard-intro h1, .tasks-toolbar__top h1,
+.auth-intro h1, .auth-card__header h2, .profile-card h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  color: var(--ink);
+}
+.eyebrow, .tasks-eyebrow, .dashboard-intro__date, .task-card__kicker {
+  color: var(--green-dark) !important;
+  font-weight: 600;
+}
+
+.brand { font-weight: 600; letter-spacing: -.025em; }
+.primary-button, .primary-action, .submit-button, .new-task-button,
+.continue-button, .profile-card__actions button {
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--green);
+  font-weight: 500;
+  box-shadow: none;
+}
+.primary-button:hover, .primary-action:hover:not(:disabled),
+.submit-button:hover:not(:disabled), .new-task-button:hover, .continue-button:hover {
+  background: #99a477;
+  box-shadow: none;
+  transform: none;
+}
+
+.dashboard-header {
+  border-color: #e6dfd8;
+  background: rgba(250, 249, 245, .94);
+}
+.dashboard-header--scrolled { box-shadow: 0 8px 24px rgba(20, 20, 19, .05); }
+.dashboard-nav__link { border-radius: 8px; color: var(--muted); font-weight: 500; }
+.dashboard-nav__link:hover { color: var(--ink); background: #efe9de; }
+.dashboard-nav__link--active { color: var(--ink); background: #efe9de; }
+.streak { border-color: #e6dfd8; background: #fffdfa; }
+.avatar { color: #fff; background: var(--green); }
+.profile-menu__panel, .mobile-menu {
+  border-color: #e6dfd8;
+  border-radius: 12px;
+  background: #fffdfa;
+  box-shadow: 0 16px 40px rgba(20, 20, 19, .1);
+}
+.profile-menu__panel a { color: var(--ink); }
+.profile-menu__panel a:hover, .mobile-menu a:hover { background: #f5f0e8; }
+
+.welcome-page { background: var(--cream); }
+.welcome-copy h1 { line-height: 1.02; letter-spacing: -.045em; }
+.welcome-copy__lead { color: var(--body, #3d3d3a); }
+.sprout-art { overflow: hidden; border-radius: 16px; background: #faf9f6; }
+.sprout-art img { mix-blend-mode: multiply; }
+.sprout-art__glow { background: radial-gradient(circle, rgba(204,120,92,.22), transparent 70%); }
+.progress-dots__item--active { background: var(--green); }
+
+.task-card, .support-card, .auth-card, .profile-card {
+  border-color: #e6dfd8;
+  background: #fffdfa;
+  box-shadow: none;
+}
+.task-card, .support-card {
+  border-radius: 16px;
+  background: #faf9f6;
+}
+.dashboard-grid { align-items: stretch; }
+.task-card, .support-card {
+  box-shadow: 0 14px 36px rgba(54, 49, 42, .08);
+}
+.task-card { height: 100%; }
+.support-card { height: 100%; min-height: 345px; }
+.support-card--welcome { background: #faf9f6; color: var(--ink); }
+.support-card--welcome .support-note { background: rgba(255, 253, 250, .8); }
+.support-card--welcome .support-note p { color: #3d3d3a; }
+.support-note { border-color: #e6dfd8; background: rgba(255,253,250,.8); }
+.reason-option { border-color: #e6dfd8; border-radius: 8px; }
+.reason-option--selected { border-color: var(--green); background: #f5e9e3; }
+.reason-option__icon, .done-mark, .first-step__number { color: #fff; background: var(--green); }
+.task-input, .field input { border-color: #d7cfc6; border-radius: 8px; background: #fffdfa; }
+.task-input:focus, .field input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(204,120,92,.14);
+}
+.step-meta span { color: var(--ink); background: #efe9de; }
+.recent-card { border-color: #e6dfd8; border-radius: 12px; background: #fffdfa; }
+.recent-card__check { color: #fff; background: var(--green); }
+.stat-card { border-radius: 12px; }
+.stat-card--green { background: #cccfb0; }
+.stat-card--blue { color: var(--ink); background: #c3d4db; }
+.stat-card--blue p { color: #4f5d62; }
+
+.tasks-shell { width: min(100% - 64px, 1280px); }
+.task-search { border-color: #e6dfd8; border-radius: 8px; background: #fffdfa; }
+.task-filters { border-radius: 10px; background: #efe9de; }
+.task-filter { border-radius: 7px; font-weight: 500; }
+.task-filter--active { color: var(--ink); background: var(--green); box-shadow: none; }
+.task-list-card { border-color: #e6dfd8; border-left: 1px solid #e6dfd8; border-radius: 12px; background: #fffdfa; box-shadow: none; }
+.task-list-card--in_progress { border-left: 4px solid var(--green); }
+.task-list-card--paused { border-left: 4px solid #e8a55a; }
+.task-list-card--done { border-left: 4px solid #5db872; background: #f5f0e8; }
+.status-badge { border-radius: 9999px; }
+.status-badge--in_progress { color: #8f442e; background: #f5e9e3; }
+.status-badge--paused { color: #7a541d; background: #f7ead9; }
+.status-badge--done { color: #376f43; background: #e4f1e6; }
+.task-progress { background: #e6dfd8; }
+.task-progress span { background: var(--green); }
+.expand-button, .task-more > button { border-radius: 8px; }
+.task-more .task-more__menu, .task-dialog { border-color: #e6dfd8; background: #fffdfa; }
+.task-dialog { border-radius: 12px; }
+.task-dialog__actions button { border-radius: 8px; }
+.task-dialog__actions .task-dialog__confirm { border-color: var(--green); background: var(--green); }
+.task-more__menu .task-more__delete { color: var(--error); }
+
+.auth-page, .profile-page { background: #f5f0e8; }
+.auth-card, .profile-card { border-radius: 16px; }
+.auth-tabs { border-color: #e6dfd8; border-radius: 10px; background: #efe9de; }
+.auth-tabs button { border-radius: 7px; }
+.auth-tabs button[aria-pressed='true'] { color: var(--ink); background: var(--green); box-shadow: none; }
+.google-button, .profile-link { border-color: #d7cfc6; border-radius: 8px; background: #fffdfa; }
+.profile-card__avatar--fallback { color: #fff; background: var(--green); }
+
+@media (max-width: 600px) {
+  .tasks-shell { width: min(100% - 28px, 1280px); }
+}

@@ -1,0 +1,129 @@
+:root {
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: #171815;
+  background: #f4f1e9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink: #171815;
+  --muted: #62645f;
+  --green: #718f76;
+  --green-dark: #526d58;
+  --green-pale: #e6ebdf;
+  --lavender: #e7e2f2;
+  --cream: #f4f1e9;
+  --paper: #faf8f2;
+  --error: #9f4f3d;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  background: var(--cream);
+}
+
+html {
+  scroll-padding-top: 96px;
+  scrollbar-gutter: stable;
+}
+body { overflow-x: hidden; }
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a { color: inherit; }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(82, 109, 88, 0.38);
+  outline-offset: 3px;
+}
+
+.shell {
+  width: min(100%, 1200px);
+  margin-inline: auto;
+}
+
+.brand {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  font-size: 26px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 160ms ease;
+}
+
+.brand:hover { opacity: 0.92; }
+.brand:active { opacity: 0.82; }
+
+.brand__logo {
+  display: block;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  object-fit: contain;
+}
+
+.brand__name {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.045em;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.primary-button {
+  display: inline-flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 0 24px;
+  border-radius: 16px;
+  color: #fff;
+  background: var(--green-dark);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+}
+
+.primary-button:hover {
+  background: #435c49;
+  box-shadow: 0 10px 24px rgba(44, 67, 49, 0.16);
+  transform: translateY(-2px);
+}
+
+.primary-button:active { box-shadow: none; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .brand {
+    min-height: 44px;
+    gap: 10px;
+    font-size: 22px;
+  }
+
+  .brand__logo {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+}

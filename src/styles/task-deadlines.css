@@ -1,0 +1,77 @@
+.deadline-field {
+  display: flex;
+  margin-top: 12px;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.deadline-field > span {
+  margin-right: 3px;
+  color: #737a72;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.deadline-field button,
+.deadline-field input,
+.task-deadline-editor button,
+.task-deadline-editor input {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d1d3cc;
+  border-radius: 9px;
+  color: #59635a;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.deadline-field .deadline-today--active {
+  border-color: #718f76;
+  color: #526d58;
+  background: #e7ede3;
+}
+
+.deadline-field .deadline-clear {
+  border-color: transparent;
+  background: transparent;
+}
+
+.task-deadline {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  color: #677368;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.task-deadline--empty {
+  color: #989d96;
+}
+
+.task-deadline-editor {
+  display: flex;
+  margin-top: 8px;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.task-deadline-editor input {
+  max-width: 145px;
+}
+
+@media (max-width: 600px) {
+  .deadline-field {
+    align-items: stretch;
+  }
+
+  .deadline-field > span {
+    width: 100%;
+  }
+}

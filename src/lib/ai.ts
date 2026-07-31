@@ -1,0 +1,136 @@
+import { supabase } from './supabase';
+import type { TaskStep } from './tasks';
+import type { TimerSession } from './timer';
+
+const coachSystem = `Ты добрый помощник по продуктивности для подростка.
+Пиши по-русски, коротко и конкретно. Не стыди и не ставь диагнозы.
+Предлагай только безопасные, выполнимые действия. Не используй Markdown.`;
+
+async function askAi(prompt: string, system = coachSystem) {
+  const { data, error } = await supabase.functions.invoke('ai', { body: { prompt, system } });
+  if (error) throw new Error('ИИ сейчас недоступен. Попробуй ещё раз чуть позже.');
+  if (!data || typeof data.text !== 'string') throw new Error('ИИ не смог подготовить ответ.');
+  return data.text.trim();
+}
+
+type SupportPhraseContext = {
+  displayName?: string;
+  taskTitle?: string;
+  recentPhrases: string[];
+};
+
+export function createSupportPhrase({ displayName, taskTitle, recentPhrases }: SupportPhraseContext) {
+  const context = [
+    displayName ? `Имя: "${displayName.slice(0, 40)}".` : '',
+    taskTitle ? `Текущая задача: "${taskTitle.slice(0, 120)}".` : '',
+  ].filter(Boolean).join(' ');
+  const recent = recentPhrases.length
+    ? `Не повторяй эти недавние фразы: ${JSON.stringify(recentPhrases)}.`
+    : '';
+
+  return askAi(`Напиши одну короткую поддерживающую фразу перед началом работы.
+Она должна мягко снижать тревогу и приглашать сделать один небольшой шаг.
+Тон спокойный, тёплый и ненавязчивый: без давления, вины, чрезмерного энтузиазма и токсичной продуктивности.
+Одно естественное предложение на русском языке, не более 110 символов. Без кавычек, эмодзи и пояснений.
+${context} ${recent}`);
+}
+
+function parseJson<T>(text: string): T {
+  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+  return JSON.parse(cleaned) as T;
+}
+
+export async function clarifyTask(title: string) {
+  return askAi(`Сделай задачу конкретной и проверяемой, сохранив смысл.
+Исходная задача: "${title}". Ответь только новым названием, не длиннее 90 символов.`);
+}
+
+export async function createTaskPlan(title: string, reason?: string): Promise<TaskStep[]> {
+  const reasonContext = reason?.trim()
+    ? `Пользователю мешает начать: "${reason.trim()}". Используй это как контекст, но не повторяй причину механически в шагах.`
+    : '';
+  const text = await askAi(`Составь практичный план выполнения задачи "${title}".
+${reasonContext}
+Адаптируй первые шаги к препятствию пользователя. При страхе ошибки снизь давление и предложи безопасный черновой результат; при непонимании сначала определи конкретный результат и недостающую информацию; при перегруженности выдели один приоритетный посильный участок; при нехватке энергии предложи короткий, но содержательный старт без чрезмерного упрощения.
+Учитывай препятствие при формулировке, последовательности и отдельной оценке времени каждого шага.
+Количество шагов выбери по реальной сложности задачи: простая задача может состоять из 1–2 шагов, объёмная — из большего числа, но не более 8.
+Каждый шаг должен давать заметный проверяемый результат и приближать к завершению всей задачи.
+Не создавай формальные шаги вроде «открыть документ», «подготовить рабочее место», «начать работу» или «ознакомиться с задачей», если сами по себе они не дают нужного результата.
+Объединяй мелкие действия в один осмысленный шаг. Формулируй конкретно: что сделать и какой результат должен получиться.
+Выстрой шаги так, чтобы результат каждого естественно подготавливал следующий.
+Для каждого шага отдельно рассчитай время по его содержанию, сложности и ожидаемому результату. Коротким действиям назначай действительно короткое время, содержательным — реалистично большее. Не повторяй одну длительность механически.
+Шаги должны оставаться психологически комфортными, но не быть бессодержательно мелкими.
+Верни только JSON-массив: [{"title":"действие","minutes":10}].
+minutes — реалистичное целое число от 1 до 180.`);
+  const plan = parseJson<Array<{ title?: unknown; minutes?: unknown }>>(text);
+  if (!Array.isArray(plan)) throw new Error('Не получилось составить план.');
+  return plan.slice(0, 8).map((step) => {
+    if (typeof step.title !== 'string' || !step.title.trim()
+      || typeof step.minutes !== 'number' || !Number.isFinite(step.minutes)) {
+      throw new Error('ИИ вернул неполный план. Попробуй составить его ещё раз.');
+    }
+    return {
+      id: crypto.randomUUID(),
+      title: step.title.trim().slice(0, 120),
+      minutes: Math.min(180, Math.max(1, Math.round(step.minutes))),
+      done: false,
+    };
+  });
+}
+
+export async function estimateTaskMinutes(title: string) {
+  const text = await askAi(`Оцени, сколько минут обычно нужно подростку на задачу "${title}".
+Учти подготовку и проверку результата. Ответь только одним целым числом от 2 до 480.`);
+  const minutes = Number.parseInt(text.match(/\d+/)?.[0] ?? '', 10);
+  if (!Number.isFinite(minutes)) throw new Error('Не получилось оценить время.');
+  return Math.min(480, Math.max(2, minutes));
+}
+
+type SuggestedStep = Pick<TaskStep, 'title' | 'minutes'>;
+
+async function parseSuggestedStep(prompt: string): Promise<SuggestedStep> {
+  const result = parseJson<{ title?: unknown; minutes?: unknown }>(await askAi(prompt));
+  if (typeof result.title !== 'string' || !result.title.trim()
+    || typeof result.minutes !== 'number' || !Number.isFinite(result.minutes)) {
+    throw new Error('ИИ не смог подобрать шаг и время. Попробуй ещё раз.');
+  }
+  return {
+    title: result.title.trim().slice(0, 120),
+    minutes: Math.min(180, Math.max(1, Math.round(result.minutes))),
+  };
+}
+
+export function createFirstStep(task: string, reason: string) {
+  return parseSuggestedStep(`Задача: "${task}". Начать мешает: "${reason}".
+Предложи первый осмысленный шаг, который легко начать и который даст заметный результат.
+Не предлагай формальные действия вроде «открыть документ», «посмотреть на задачу» или «подготовиться», если у них нет самостоятельной ценности. Объедини слишком мелкие действия.
+Отдельно рассчитай реалистичную длительность по содержанию, сложности и результату шага: короткому действию дай мало времени, содержательному — больше.
+Верни только JSON: {"title":"конкретное действие и результат","minutes":5}. minutes — целое число от 1 до 180.`);
+}
+
+export function simplifyStep(task: string, currentStep: string, reason?: string) {
+  const reasonContext = reason?.trim() ? `Начать мешает: "${reason.trim()}".` : '';
+  return parseSuggestedStep(`Задача: "${task}". Текущий шаг: "${currentStep}". ${reasonContext}
+Учти это препятствие в формулировке и оценке времени, не упоминая его механически.
+Сделай шаг легче для начала, сохранив заметный самостоятельный результат. Не превращай его в формальность и объедини действия, которые по отдельности не имеют ценности.
+Отдельно рассчитай реалистичную длительность нового шага, не назначай время по умолчанию.
+Верни только JSON: {"title":"конкретное действие и результат","minutes":5}. minutes — целое число от 1 до 180.`);
+}
+
+export function createSessionAdvice(session: TimerSession) {
+  const minutes = Math.max(1, Math.round(session.seconds / 60));
+  return askAi(`Пользователь только что работал ${minutes} минут над задачей "${session.taskTitle}".
+Дай один короткий совет: продолжить маленьким шагом, отдохнуть или завершить на сегодня.
+Укажи конкретное следующее действие.`);
+}
+
+export function createWeeklyReview(sessions: TimerSession[]) {
+  const summary = sessions.slice(0, 30).map((session) => ({
+    task: session.taskTitle,
+    minutes: Math.round(session.seconds / 60),
+    completedAt: session.completedAt,
+  }));
+  return askAi(`Вот сессии фокуса пользователя за последние 7 дней:
+${JSON.stringify(summary)}
+Напиши 2 коротких предложения: доброжелательное наблюдение о ритме и одну небольшую цель на следующую неделю.`);
+}

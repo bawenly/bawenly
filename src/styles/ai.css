@@ -1,0 +1,79 @@
+.ai-title-tools {
+  display: flex;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.ai-title-tools button,
+.ai-task-tools button,
+.ai-insight button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #cfd8cf;
+  border-radius: 10px;
+  color: #526d58;
+  background: #f3f6f1;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ai-title-tools button:disabled,
+.ai-task-tools button:disabled,
+.ai-insight button:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+.ai-task-tools button:first-child {
+  border-color: #f3efe9;
+  color: #000;
+  background: rgba(243, 239, 233, .62);
+}
+
+.ai-task-tools {
+  display: flex;
+  padding: 0 22px 16px 67px;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ai-error {
+  margin: 10px 0 0;
+  color: #a24e45;
+  font-size: 13px;
+}
+
+.ai-insight {
+  margin-top: 22px;
+  padding: 22px 26px;
+  border: 1px solid #d8dfd5;
+  border-radius: 20px;
+  background: #f2f6ef;
+}
+
+.ai-insight h2 { margin: 6px 0 8px; font-size: 21px; }
+.ai-insight p { margin: 7px 0; color: #566158; line-height: 1.55; }
+.ai-insight--weekly { margin-top: 18px; }
+.ai-insight button { margin-top: 8px; }
+
+.task-next--timing {
+  grid-template-columns: minmax(180px, 1.5fr) repeat(2, minmax(105px, .55fr));
+}
+
+.simple-task-meta span {
+  display: inline-grid;
+  margin-top: 5px;
+  gap: 3px;
+}
+
+.simple-task-meta small {
+  color: #8a9087;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .ai-task-tools { padding-left: 22px; }
+  .task-next--timing { grid-template-columns: 1fr; gap: 12px; }
+}

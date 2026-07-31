@@ -1,0 +1,121 @@
+.task-steps {
+  position: relative;
+}
+
+.task-step {
+  position: relative;
+  transition: background 150ms ease, box-shadow 150ms ease;
+}
+
+.task-step__row {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.task-step__row > label {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: auto 1fr auto;
+}
+
+.task-step__actions .task-step__icon-button {
+  display: grid;
+  width: 30px;
+  padding: 0;
+  place-items: center;
+}
+
+.task-step label input {
+  accent-color: #6d9c30;
+}
+
+.task-list-card--done .task-complete {
+  border-color: #6d9c30;
+  background: #6d9c30;
+}
+
+.task-step__actions button,
+.add-step-button {
+  background: #f3efe9;
+}
+
+.add-step-button {
+  border: 1px solid #f3efe9;
+  color: #000;
+  background: rgba(243, 239, 233, .62);
+}
+
+.task-step__icon-button svg,
+.task-step__drag-handle svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.task-step__drag-handle {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  color: #858b82;
+  background: transparent;
+  cursor: grab;
+  place-items: center;
+  touch-action: none;
+}
+
+.task-step__drag-handle:hover {
+  color: #526d58;
+  background: #eeefe9;
+}
+
+.task-step__drag-handle:active {
+  cursor: grabbing;
+}
+
+.task-step--dragging {
+  z-index: 1;
+  border-radius: 10px;
+  background: #f0f4ed;
+  box-shadow: 0 6px 18px rgba(62, 57, 43, .12);
+}
+
+.task-step--drop-before::before,
+.task-steps__end-drop {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: #718f76;
+  content: '';
+}
+
+.task-step--drop-before::before {
+  top: -2px;
+}
+
+.task-steps__end-drop {
+  position: relative;
+  margin-top: -2px;
+}
+
+@media (max-width: 600px) {
+  .task-step__row > label {
+    grid-template-columns: auto 1fr;
+  }
+
+  .task-step__row label small {
+    grid-column: 2;
+  }
+
+}

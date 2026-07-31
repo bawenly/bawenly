@@ -1,0 +1,88 @@
+.task-list-card h2 {
+  margin: 0;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.dashboard-nav__link {
+  border-radius: 9999px;
+  font-size: 16px;
+}
+
+.primary-action,
+.continue-button,
+.new-task-button {
+  border-radius: 14px;
+}
+
+.task-filters {
+  border-radius: 14px;
+}
+
+.task-filter {
+  border-radius: 11px;
+}
+
+@media (max-width: 600px) {
+  .tasks-shell {
+    width: calc(100% - 28px);
+    padding-top: 16px;
+    padding-bottom: 124px;
+  }
+
+  .task-filters {
+    width: 100%;
+    gap: 1px;
+    overflow: hidden;
+    padding: 3px;
+    flex-wrap: nowrap;
+  }
+
+  .task-filter {
+    min-width: 0;
+    min-height: 42px;
+    flex: 1 1 auto;
+    padding: 0 2px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .tasks-toolbar__controls > .new-task-button {
+    position: fixed;
+    z-index: 90;
+    right: calc(20px + env(safe-area-inset-right));
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 56px;
+    min-height: 56px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 0;
+    line-height: 0;
+    box-shadow: 0 8px 24px rgba(23, 32, 51, 0.2);
+  }
+
+  .tasks-toolbar__controls > .new-task-button span {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    font-size: 0;
+    line-height: 0;
+    place-items: center;
+  }
+
+  .tasks-toolbar__controls > .new-task-button span::before,
+  .tasks-toolbar__controls > .new-task-button span::after {
+    position: absolute;
+    width: 22px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    content: '';
+  }
+
+  .tasks-toolbar__controls > .new-task-button span::after {
+    transform: rotate(90deg);
+  }
+}

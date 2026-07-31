@@ -1,0 +1,131 @@
+:root {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --ink: #1c1c1e;
+  --muted: #6b6f7e;
+  --green: #4262ff;
+  --green-dark: #1c1c1e;
+  --green-pale: #fff4c4;
+  --cream: #fff;
+  --paper: #fff;
+  --error: #a12f2f;
+}
+
+html, body, .dashboard-page { color: #1c1c1e; background: #fff; }
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline-color: rgba(66, 98, 255, .35);
+}
+
+.brand { font-weight: 600; letter-spacing: -.03em; }
+.eyebrow, .tasks-eyebrow, .dashboard-intro__date, .task-card__kicker {
+  color: #555a6a !important;
+  font-weight: 600;
+}
+
+.primary-button, .primary-action, .submit-button, .new-task-button,
+.continue-button, .profile-card__actions button {
+  border-radius: 9999px;
+  color: #fff;
+  background: #1c1c1e;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.primary-button:hover, .primary-action:hover:not(:disabled),
+.submit-button:hover:not(:disabled), .new-task-button:hover, .continue-button:hover {
+  background: #2c2c34;
+  box-shadow: none;
+  transform: none;
+}
+
+.dashboard-header {
+  border-color: #eef0f3;
+  background: rgba(255, 255, 255, .94);
+}
+.dashboard-header--scrolled { box-shadow: 0 4px 12px rgba(5, 0, 56, .06); }
+.dashboard-nav__link { border-radius: 9999px; color: #555a6a; font-weight: 500; }
+.dashboard-nav__link:hover { color: #1c1c1e; background: #f7f8fa; }
+.dashboard-nav__link--active { color: #fff; background: #1c1c1e; }
+.streak { border-color: #e0e2e8; background: #fff8e0; }
+.avatar { color: #1c1c1e; background: #ffd02f; }
+.profile-menu__panel {
+  border-color: #e0e2e8;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 48px -8px rgba(5, 0, 56, .12);
+}
+.profile-menu__panel a { color: #1c1c1e; }
+.profile-menu__panel a:hover { background: #f7f8fa; }
+
+.welcome-page { background: #fff; }
+.welcome-copy h1, .dashboard-intro h1, .tasks-toolbar__top h1 {
+  color: #050038;
+  font-weight: 500;
+}
+.welcome-copy h1 { line-height: 1.02; letter-spacing: -.055em; }
+.sprout-art { border-radius: 32px; background: #fff4c4; }
+.sprout-art img { mix-blend-mode: multiply; }
+.sprout-art__glow { background: radial-gradient(circle, #ffd8f4 0%, transparent 70%); }
+.progress-dots__item--active { background: #1c1c1e; }
+
+.task-card, .support-card, .auth-card, .profile-card {
+  border-color: #eef0f3;
+  background: #fff;
+  box-shadow: none;
+}
+.task-card, .support-card { border-radius: 28px; }
+.task-card { background: #fafbfc; }
+.support-card--welcome { background: #c3faf5; }
+.support-note { border-color: transparent; background: rgba(255, 255, 255, .75); }
+.reason-option { border-color: #e0e2e8; border-radius: 12px; }
+.reason-option--selected { border-color: #4262ff; background: #f5f3ff; }
+.reason-option__icon, .done-mark, .first-step__number { color: #050038; background: #ffd02f; }
+.task-input, .field input { border-color: #c7cad5; border-radius: 8px; }
+.task-input:focus, .field input:focus {
+  border-color: #4262ff;
+  box-shadow: 0 0 0 3px rgba(66, 98, 255, .14);
+}
+.step-meta span { color: #555a6a; background: #fff4c4; }
+.recent-card { border-color: #eef0f3; border-radius: 16px; background: #fff; }
+.recent-card__check { color: #187574; background: #c3faf5; }
+.stat-card { border-radius: 28px; }
+.stat-card--green { background: #fff4c4; }
+.stat-card--blue { background: #ffd8f4; }
+
+.tasks-shell { width: min(100% - 64px, 1280px); }
+.task-search, .task-filter--active { background: #fff; }
+.task-search { border-color: #e0e2e8; border-radius: 8px; }
+.task-filters { border-radius: 9999px; background: #f7f8fa; }
+.task-filter { border-radius: 9999px; font-weight: 500; }
+.task-filter--active { color: #fff; background: #1c1c1e; box-shadow: none; }
+.task-list-card { border-color: #eef0f3; border-left: 1px solid #eef0f3; border-radius: 16px; background: #fff; box-shadow: none; }
+.task-list-card--in_progress { border-left: 4px solid #4262ff; }
+.task-list-card--paused { border-left: 4px solid #ffd02f; }
+.task-list-card--done { border-left: 4px solid #00b473; background: #fafbfc; }
+.status-badge { border-radius: 9999px; }
+.status-badge--in_progress { color: #2a41b6; background: #f5f3ff; }
+.status-badge--paused { color: #746019; background: #fff4c4; }
+.status-badge--done { color: #187574; background: #c3faf5; }
+.task-progress { background: #eef0f3; }
+.task-progress span { background: #4262ff; }
+.expand-button, .task-more > button { border-radius: 9999px; }
+.task-more .task-more__menu, .task-dialog {
+  border-color: #e0e2e8;
+  background: #fff;
+  box-shadow: 0 16px 48px -8px rgba(5, 0, 56, .12);
+}
+.task-dialog { border-radius: 20px; }
+.task-dialog__actions button { border-radius: 9999px; }
+.task-dialog__actions .task-dialog__confirm { border-color: #1c1c1e; background: #1c1c1e; }
+.task-more__menu .task-more__delete { color: #a12f2f; }
+
+.auth-page, .profile-page { background: #fafbfc; }
+.auth-card, .profile-card { border-radius: 28px; }
+.auth-tabs { border-color: #e0e2e8; border-radius: 9999px; background: #f7f8fa; }
+.auth-tabs button { border-radius: 9999px; }
+.auth-tabs button[aria-pressed='true'] { color: #fff; background: #1c1c1e; box-shadow: none; }
+.google-button, .profile-link { border-color: #c7cad5; border-radius: 9999px; background: #fff; }
+.profile-card__avatar--fallback { color: #1c1c1e; background: #ffd02f; }
+
+@media (max-width: 600px) {
+  .tasks-shell { width: min(100% - 28px, 1280px); }
+}

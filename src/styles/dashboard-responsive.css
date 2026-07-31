@@ -1,0 +1,53 @@
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .support-card { position: static; min-height: 0; }
+  .support-card--welcome { padding-top: 24px; }
+  .support-card--welcome .sprout-art { width: min(100%, 500px); margin: 0 auto 20px; }
+}
+
+@media (min-width: 800px) {
+  .dashboard-account {
+    position: absolute;
+    top: max(16px, env(safe-area-inset-top));
+    right: max(24px, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 799px) {
+  html { scroll-padding-top: 84px; }
+  .dashboard-header__inner { min-height: 68px; grid-template-columns: 1fr auto; }
+  .dashboard-nav,.profile-menu { display: none; }
+  .dashboard-account .streak { display: flex; }
+  .menu-button { display: grid; width: 44px; height: 44px; padding: 12px; border: 0; border-radius: 12px; background: transparent; place-content: center; gap: 5px; cursor: pointer; }
+  .menu-button:hover { background: rgba(255,255,255,.55); }
+  .menu-button--open span:first-child { transform: translateY(3.5px) rotate(45deg); }
+  .menu-button--open span:last-child { transform: translateY(-3.5px) rotate(-45deg); }
+  .mobile-menu { position: absolute; top: calc(100% + 8px); right: 24px; display: none; width: min(240px,calc(100vw - 32px)); padding: 10px; border: 1px solid rgba(23,32,51,.1); border-radius: 16px; background: #fbfaf6; box-shadow: 0 18px 40px rgba(23,32,51,.12); }
+  .mobile-menu--open { display: grid; }
+}
+
+@media (max-width: 600px) {
+  .dashboard-header__inner,.dashboard-shell { width: min(100% - 32px,1280px); }
+  .dashboard-header__inner { min-height: 68px; }
+  .dashboard-account { gap: 4px; }
+  .dashboard-account .streak { display: none; }
+  .mobile-menu { right: 16px; }
+  .dashboard-shell { padding: 32px 0 52px; }
+  .dashboard-intro { margin-bottom: 24px; }
+  .dashboard-intro h1 { font-size: 32px; }
+  .dashboard-intro p { font-size: 15px; }
+  .dashboard-grid,.dashboard-main { gap: 18px; }
+  .task-card { min-height: 0; padding: 24px 20px; border-radius: 20px; }
+  .task-card h2 { font-size: 27px; }
+  .task-card__footer,.task-card__actions { align-items: stretch; flex-direction: column; }
+  .task-card__footer .primary-action,.task-card__actions .primary-action { width: 100%; }
+  .task-card__step-controls { width: 100%; }
+  .input-message { order: 2; text-align: center; }
+  .support-card { padding: 24px 20px; border-radius: 20px; }
+  .support-card--welcome { order: 2; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-card { min-height: 96px; }
+  .recent-card p { line-height: 1.45; }
+  .first-step { grid-template-columns: 1fr; }
+  .step-meta { margin-left: 0; }
+}

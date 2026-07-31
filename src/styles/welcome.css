@@ -1,0 +1,119 @@
+.welcome-page {
+  min-height: 100svh;
+  padding: clamp(20px, 4vw, 48px);
+}
+
+.welcome-page__shell {
+  display: grid;
+  min-height: calc(100svh - clamp(40px, 8vw, 96px));
+  grid-template-rows: auto 1fr auto;
+}
+
+.welcome-hero {
+  display: grid;
+  align-items: center;
+  gap: clamp(28px, 5vw, 72px);
+  grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+}
+
+.welcome-copy {
+  position: relative;
+  z-index: 2;
+  padding-block: clamp(52px, 10vh, 100px);
+}
+
+.welcome-copy h1 {
+  max-width: 760px;
+  margin: 18px 0 24px;
+  font-size: clamp(54px, 7.2vw, 108px);
+  font-weight: 600;
+  line-height: 0.94;
+  letter-spacing: -0.07em;
+}
+
+.welcome-copy__lead {
+  max-width: 520px;
+  margin: 0 0 36px;
+  color: var(--muted);
+  font-size: clamp(17px, 1.6vw, 21px);
+  line-height: 1.6;
+}
+
+.sprout-art {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  place-items: center;
+  isolation: isolate;
+}
+
+.sprout-art img {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 610px);
+  height: auto;
+  mix-blend-mode: multiply;
+  animation: sprout-arrival 700ms ease-out both;
+}
+
+.sprout-art__glow {
+  position: absolute;
+  z-index: -1;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 248, 207, 0.86) 0%,
+    rgba(255, 248, 207, 0.42) 42%,
+    transparent 78%
+  );
+  filter: blur(34px);
+}
+
+.welcome-footer {
+  display: grid;
+  align-items: center;
+  grid-template-columns: 1fr auto 1fr;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.welcome-footer__note { justify-self: end; }
+.progress-dots { display: flex; gap: 7px; }
+
+.progress-dots__item {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cac9c1;
+}
+
+.progress-dots__item--active {
+  width: 24px;
+  border-radius: 6px;
+  background: var(--green-dark);
+}
+
+@keyframes sprout-arrival {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 800px) {
+  .welcome-hero { grid-template-columns: 1fr; }
+  .welcome-copy { padding: 60px 0 0; }
+  .sprout-art { max-width: 540px; margin: -30px auto 0; }
+}
+
+@media (max-width: 520px) {
+  .welcome-copy h1 {
+    margin-top: 14px;
+    font-size: clamp(48px, 16vw, 72px);
+  }
+  .welcome-copy__lead { margin-bottom: 28px; }
+  .primary-button { width: 100%; }
+  .welcome-footer__note { display: none; }
+  .welcome-footer { grid-template-columns: 1fr auto; }
+}

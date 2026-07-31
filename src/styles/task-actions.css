@@ -1,0 +1,59 @@
+.task-more .task-more__menu {
+  width: 190px;
+  padding: 5px;
+  border: 1px solid rgba(23, 32, 51, .08);
+  border-radius: 11px;
+}
+
+.task-more__menu button {
+  display: block;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  color: #59635a;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.task-more__menu button:hover { background: #f2f2ed; }
+.task-more__menu .task-more__delete { color: #a3473a; }
+.task-more__menu .task-more__delete:hover { background: #f8e9e6; }
+.task-dialog-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  padding: 20px;
+  background: rgba(23, 32, 51, .32);
+  place-items: center;
+}
+
+.task-dialog {
+  width: min(100%, 480px);
+  padding: 28px;
+  border: 1px solid rgba(23, 32, 51, .09);
+  border-radius: 20px;
+  background: #fbfaf6;
+  box-shadow: 0 24px 70px rgba(23, 32, 51, .2);
+}
+
+.task-dialog h2 { margin: 0 0 16px; font-size: 22px; letter-spacing: -.025em; }
+.task-dialog p { margin: 0 0 14px; color: #687064; font-size: 14px; line-height: 1.55; }
+.task-dialog__actions { display: flex; margin-top: 24px; justify-content: flex-end; gap: 9px; }
+.task-dialog__actions button {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(23, 32, 51, .1);
+  border-radius: 11px;
+  color: #59635a;
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.task-dialog__actions .task-dialog__confirm { border-color: #627f68; color: #fff; background: #627f68; }
