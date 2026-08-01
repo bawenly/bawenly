@@ -1,4 +1,4 @@
-import { Route, Switch } from 'wouter';
+import { Redirect, Route, Switch } from 'wouter';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -18,7 +18,9 @@ export default function App() {
       <ProfileProvider>
         <TimerProvider>
           <Switch>
-          <Route path="/" component={HomePage} />
+          <Route path="/">
+            <Redirect to="/welcome" />
+          </Route>
           <Route path="/step" component={HomePage} />
           <Route path="/welcome" component={WelcomePage} />
           <Route path="/register" component={RegisterPage} />
