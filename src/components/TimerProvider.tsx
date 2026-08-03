@@ -17,6 +17,9 @@ type TimerContextValue = {
   setMode: (mode: TimerMode) => void;
   toggle: () => void;
   reset: () => void;
+  clearTask: (taskId: string) => void;
+  clearSessions: () => void;
+  deleteSession: (id: string) => void;
   finish: () => void;
 };
 
@@ -197,6 +200,11 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     reset: () => setState((current) => ({
       ...initialTimerState, mode: current.mode, taskId: current.taskId, taskTitle: current.taskTitle,
     })),
+    clearTask: (taskId) => setState((current) => current.taskId === taskId
+      ? { ...initialTimerState, mode: current.mode }
+      : current),
+    clearSessions: () => setSessions([]),
+    deleteSession: (id) => setSessions((current) => current.filter((session) => session.id !== id)),
     finish: () => {
       if (finishLock.current || !state.stepId) return;
       finishLock.current = true;

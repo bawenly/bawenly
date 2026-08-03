@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { Brand } from '../components/Brand';
 import { SproutArt } from '../components/SproutArt';
+import { completeWelcome } from '../lib/welcome';
 
 export function WelcomePage() {
   return (
@@ -14,7 +15,7 @@ export function WelcomePage() {
             <p className="welcome-copy__lead">
               Начни с небольшой цели и преврати её в устойчивую привычку.
             </p>
-            <Link className="primary-button" href="/">
+            <Link className="primary-button" href="/" onClick={completeWelcome}>
               Начать <span aria-hidden="true">→</span>
             </Link>
           </div>

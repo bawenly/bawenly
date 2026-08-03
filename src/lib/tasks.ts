@@ -41,9 +41,10 @@ export function getLocalDateKey(date = new Date()) {
 }
 
 export function formatDeadline(dateKey: string) {
-  if (dateKey === getLocalDateKey()) return 'Сегодня';
+  const language = currentLanguage();
+  if (dateKey === getLocalDateKey()) return language === 'en' ? 'Today' : 'Сегодня';
   const [year, month, day] = dateKey.split('-').map(Number);
-  return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+  return new Intl.DateTimeFormat(language === 'en' ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
     .format(new Date(year, month - 1, day));
 }
 
@@ -112,3 +113,4 @@ export function withRecalculatedStatus(task: Task): Task {
   if (task.status === 'done') return { ...task, status: 'in_progress' };
   return task;
 }
+import { currentLanguage } from './locale';

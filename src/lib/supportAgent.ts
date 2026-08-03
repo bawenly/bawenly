@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { currentLanguage } from './locale';
 
 export type SupportMessage = {
   id: string;
@@ -36,7 +37,7 @@ export async function askSupportAgent({
 Ответь как внимательный ИИ-напарник.`;
 
   const { data, error } = await supabase.functions.invoke('ai', {
-    body: { prompt, system: supportSystem },
+    body: { prompt, system: `${supportSystem}\n${currentLanguage() === 'en' ? 'Reply only in natural English with a calm, supportive tone.' : 'Отвечай только на естественном русском языке.'}` },
   });
   if (error) throw new Error('Напарник сейчас не отвечает. Попробуй ещё раз чуть позже.');
   if (!data || typeof data.text !== 'string') {

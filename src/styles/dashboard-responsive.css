@@ -5,14 +5,6 @@
   .support-card--welcome .sprout-art { width: min(100%, 500px); margin: 0 auto 20px; }
 }
 
-@media (min-width: 800px) {
-  .dashboard-account {
-    position: absolute;
-    top: max(16px, env(safe-area-inset-top));
-    right: max(24px, env(safe-area-inset-right));
-  }
-}
-
 @media (max-width: 799px) {
   html { scroll-padding-top: 84px; }
   .dashboard-header__inner { min-height: 68px; grid-template-columns: 1fr auto; }

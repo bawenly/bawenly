@@ -1,10 +1,13 @@
 .task-steps {
   position: relative;
+  overflow: visible;
 }
 
 .task-step {
   position: relative;
-  transition: background 150ms ease, box-shadow 150ms ease;
+  transform: translateY(var(--task-step-shift-y, 0));
+  transition: transform 210ms cubic-bezier(.22,.8,.3,1), background 180ms ease, box-shadow 180ms ease;
+  will-change: transform;
 }
 
 .task-step__row {
@@ -83,10 +86,19 @@
 }
 
 .task-step--dragging {
-  z-index: 1;
+  z-index: 3;
   border-radius: 10px;
   background: #f0f4ed;
-  box-shadow: 0 6px 18px rgba(62, 57, 43, .12);
+  box-shadow: 0 10px 24px rgba(62, 57, 43, .16);
+  transform: translateY(var(--task-step-drag-y, 0)) scale(1.015);
+  transition: background 180ms ease, box-shadow 180ms ease;
+  cursor: grabbing;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-step { transition-duration: 80ms; }
+  .task-step--dragging { transform: translateY(var(--task-step-drag-y, 0)); }
 }
 
 .task-step--drop-before::before,

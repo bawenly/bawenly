@@ -1,6 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import { getAccountName } from './profile';
 import { supabase } from './supabase';
+import type { Language } from './locale';
 
 type VisitStreakRow = {
   visit_streak: number;
@@ -25,7 +26,8 @@ export async function recordVisit(user: User) {
   return row?.visit_streak ?? 1;
 }
 
-export function formatVisitStreak(days: number) {
+export function formatVisitStreak(days: number, language: Language = 'ru') {
+  if (language === 'en') return `${days} ${days === 1 ? 'day' : 'days'}`;
   const lastTwoDigits = days % 100;
   const lastDigit = days % 10;
 

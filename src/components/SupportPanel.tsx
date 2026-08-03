@@ -2,6 +2,7 @@ import { FormEvent } from 'react';
 import type { FlowStage } from '../pages/HomePage';
 import { SproutArt } from './SproutArt';
 import { DynamicSupportPhrase } from './DynamicSupportPhrase';
+import { StepSupportPanel, type ActiveStepSupport } from './StepSupportPanel';
 
 const reasons = [
   ['?', 'Не знаю, с чего начать'],
@@ -17,10 +18,11 @@ type Props = {
   selectedReason: string;
   onReasonChange: (reason: string) => void;
   onReasonSelect: (reason: string) => void;
+  stepSupport: ActiveStepSupport | null;
 };
 
 export function SupportPanel({
-  stage, displayName, profileReady, selectedReason, onReasonChange, onReasonSelect,
+  stage, displayName, profileReady, selectedReason, onReasonChange, onReasonSelect, stepSupport,
 }: Props) {
   const isPresetReason = reasons.some(([, label]) => label === selectedReason);
   const customReason = isPresetReason ? '' : selectedReason;
@@ -42,13 +44,8 @@ export function SupportPanel({
   }
 
   if (stage === 'step') {
-    return (
-      <aside className="support-card support-card--done" aria-live="polite">
-        <div className="done-mark" aria-hidden="true">✓</div>
-        <p className="eyebrow">Можно не спешить</p>
-        <h2>Ты уже сделал самое трудное — начал.</h2>
-        <p>Один понятный шаг лучше идеального плана, который ждёт своего часа.</p>
-      </aside>
+    return stepSupport ? <StepSupportPanel context={stepSupport} /> : (
+      <aside className="support-card support-card--done" aria-live="polite"><p>Подбираю помощь для шага…</p></aside>
     );
   }
 

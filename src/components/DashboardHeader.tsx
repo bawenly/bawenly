@@ -5,6 +5,8 @@ import { useAuthModal } from './AuthModal';
 import { useProfile } from './ProfileProvider';
 import { UserAvatar } from './UserAvatar';
 import { formatVisitStreak } from '../lib/visitStreak';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { useLanguage } from './LanguageProvider';
 
 export function DashboardHeader() {
   const { openAuth } = useAuthModal();
@@ -12,6 +14,7 @@ export function DashboardHeader() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { language } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 4);
@@ -47,9 +50,10 @@ export function DashboardHeader() {
         <div className="dashboard-account">
           {user && profile && (
             <span className="streak">
-              <span aria-hidden="true">✦</span> {formatVisitStreak(profile.visitStreak)}
+              <span aria-hidden="true">✦</span> {formatVisitStreak(profile.visitStreak, language)}
             </span>
           )}
+          <LanguageSwitcher />
           <div className="dashboard-account__auth">
             {user === null && (
               <button className="header-login-button" type="button" onClick={() => openAuth()}>Вход</button>

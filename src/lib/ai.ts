@@ -1,13 +1,17 @@
 import { supabase } from './supabase';
 import type { TaskStep } from './tasks';
 import type { TimerSession } from './timer';
+import { currentLanguage } from './locale';
 
 const coachSystem = `Ты добрый помощник по продуктивности для подростка.
 Пиши по-русски, коротко и конкретно. Не стыди и не ставь диагнозы.
 Предлагай только безопасные, выполнимые действия. Не используй Markdown.`;
 
 async function askAi(prompt: string, system = coachSystem) {
-  const { data, error } = await supabase.functions.invoke('ai', { body: { prompt, system } });
+  const languageInstruction = currentLanguage() === 'en'
+    ? 'Reply in natural, concise English. Keep a calm, supportive tone. All generated titles, steps and explanations must be in English.'
+    : 'Отвечай на естественном русском языке. Сохраняй спокойный, поддерживающий тон.';
+  const { data, error } = await supabase.functions.invoke('ai', { body: { prompt, system: `${system}\n${languageInstruction}` } });
   if (error) throw new Error('ИИ сейчас недоступен. Попробуй ещё раз чуть позже.');
   if (!data || typeof data.text !== 'string') throw new Error('ИИ не смог подготовить ответ.');
   return data.text.trim();
@@ -46,11 +50,14 @@ export async function clarifyTask(title: string) {
 }
 
 export async function createTaskPlan(title: string, reason?: string): Promise<TaskStep[]> {
+  const taskTitle = title.trim();
+  if (!taskTitle) throw new Error('Напиши задачу — можно всего пару слов.');
   const reasonContext = reason?.trim()
     ? `Пользователю мешает начать: "${reason.trim()}". Используй это как контекст, но не повторяй причину механически в шагах.`
     : '';
-  const text = await askAi(`Составь практичный план выполнения задачи "${title}".
+  const createPlanResponse = () => askAi(`Составь практичный план выполнения только этой задачи: ${JSON.stringify(taskTitle)}.
 ${reasonContext}
+Не заменяй задачу примером, похожей задачей или задачей про подготовку к тесту. Каждый шаг должен относиться именно к переданному тексту задачи.
 Адаптируй первые шаги к препятствию пользователя. При страхе ошибки снизь давление и предложи безопасный черновой результат; при непонимании сначала определи конкретный результат и недостающую информацию; при перегруженности выдели один приоритетный посильный участок; при нехватке энергии предложи короткий, но содержательный старт без чрезмерного упрощения.
 Учитывай препятствие при формулировке, последовательности и отдельной оценке времени каждого шага.
 Количество шагов выбери по реальной сложности задачи: простая задача может состоять из 1–2 шагов, объёмная — из большего числа, но не более 8.
@@ -60,9 +67,18 @@ ${reasonContext}
 Выстрой шаги так, чтобы результат каждого естественно подготавливал следующий.
 Для каждого шага отдельно рассчитай время по его содержанию, сложности и ожидаемому результату. Коротким действиям назначай действительно короткое время, содержательным — реалистично большее. Не повторяй одну длительность механически.
 Шаги должны оставаться психологически комфортными, но не быть бессодержательно мелкими.
-Верни только JSON-массив: [{"title":"действие","minutes":10}].
+Верни только JSON-объект: {"taskTitle":${JSON.stringify(taskTitle)},"steps":[{"title":"действие","minutes":10}]}.
+Поле taskTitle скопируй из запроса абсолютно точно, без исправлений и перефразирования.
 minutes — реалистичное целое число от 1 до 180.`);
-  const plan = parseJson<Array<{ title?: unknown; minutes?: unknown }>>(text);
+
+  let response = parseJson<{ taskTitle?: unknown; steps?: unknown }>(await createPlanResponse());
+  if (response.taskTitle !== taskTitle) {
+    response = parseJson<{ taskTitle?: unknown; steps?: unknown }>(await createPlanResponse());
+  }
+  if (response.taskTitle !== taskTitle) {
+    throw new Error('ИИ составил план для другой задачи. Попробуй ещё раз.');
+  }
+  const plan = response.steps;
   if (!Array.isArray(plan)) throw new Error('Не получилось составить план.');
   return plan.slice(0, 8).map((step) => {
     if (typeof step.title !== 'string' || !step.title.trim()

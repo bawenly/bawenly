@@ -81,7 +81,7 @@ export function TaskCard({ task, onChange, onDelete }: Props) {
         </button>
         <div className="task-list-card__content">
           <div className="task-list-card__title">
-            <h2>{task.title}</h2>
+            <h2 data-user-text>{task.title}</h2>
             <span className={`status-badge status-badge--${task.status}`}>{statusLabels[task.status]}</span>
           </div>
           <TaskDeadline dueDate={task.dueDate} onChange={(dueDate) => onChange({ ...task, dueDate })} />

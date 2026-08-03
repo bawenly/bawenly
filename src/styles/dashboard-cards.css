@@ -22,6 +22,13 @@
 .reason-option--custom button:disabled { color: #b7bbb5; cursor: default; }
 .support-card--done { display: flex; flex-direction: column; justify-content: center; animation: card-in 300ms ease-out both; }
 .done-mark { display: grid; width: 62px; height: 62px; margin-bottom: 24px; border-radius: 50%; color: #526d58; background: #e7ede3; font-size: 24px; place-items: center; }
+.step-support { justify-content: flex-start; white-space: normal; }
+.step-support .eyebrow { margin: 0 0 12px; color: #718f76; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.step-support__options { display: grid; width: 100%; margin-top: 18px; gap: 9px; }
+.step-support__options button { display: flex; min-height: 50px; padding: 12px 14px; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(23,32,51,.09); border-radius: 15px; color: #172033; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.step-support__options button:hover { border-color: rgba(82,109,88,.35); background: #f7f4ed; }
+.step-support__back { margin: 0 0 18px; padding: 0; border: 0; color: #526d58; background: transparent; font: inherit; font-size: 13px; cursor: pointer; }
+.step-support__result { margin: 8px 0 0; color: #525b51; line-height: 1.6; white-space: pre-wrap; }
 .first-step { display: grid; margin-top: 30px; align-items: start; gap: 18px; grid-template-columns: auto 1fr; }
 .first-step__number { display: grid; width: 54px; height: 54px; border-radius: 16px; color: #526d58; background: #e7ede3; font-size: 13px; font-weight: 700; place-items: center; }
 .first-step p { max-width: 620px; margin: 3px 0 0; font-size: clamp(20px,2.4vw,29px); line-height: 1.35; }

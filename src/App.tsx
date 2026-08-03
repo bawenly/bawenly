@@ -11,16 +11,20 @@ import { TimerProvider } from './components/TimerProvider';
 import { TimerPage } from './pages/TimerPage';
 import { ProfileProvider } from './components/ProfileProvider';
 import { SupportPage } from './pages/SupportPage';
+import { hasCompletedWelcome } from './lib/welcome';
+import { LanguageProvider } from './components/LanguageProvider';
+
+function RootPage() {
+  return hasCompletedWelcome() ? <HomePage /> : <Redirect to="/welcome" />;
+}
 
 export default function App() {
   return (
     <AuthModalProvider>
       <ProfileProvider>
-        <TimerProvider>
+        <LanguageProvider><TimerProvider>
           <Switch>
-          <Route path="/">
-            <Redirect to="/welcome" />
-          </Route>
+          <Route path="/" component={RootPage} />
           <Route path="/step" component={HomePage} />
           <Route path="/welcome" component={WelcomePage} />
           <Route path="/register" component={RegisterPage} />
@@ -31,7 +35,7 @@ export default function App() {
           <Route path="/support" component={SupportPage} />
           <Route component={NotFoundPage} />
           </Switch>
-        </TimerProvider>
+        </TimerProvider></LanguageProvider>
       </ProfileProvider>
     </AuthModalProvider>
   );
