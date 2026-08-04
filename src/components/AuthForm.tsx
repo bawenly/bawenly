@@ -1,4 +1,5 @@
 import { FormEvent, useId, useState } from 'react';
+import { useLocation } from 'wouter';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { getAuthErrorMessage } from '../lib/authMessages';
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function AuthForm({ onSuccess }: Props) {
+  const [, navigate] = useLocation();
   const emailId = useId();
   const passwordId = useId();
   const [mode, setMode] = useState<AuthMode>('register');
@@ -64,7 +66,10 @@ export function AuthForm({ onSuccess }: Props) {
             ? 'Аккаунт создан. Вы вошли в приложение!'
             : 'Аккаунт создан! Проверьте почту и перейдите по ссылке для подтверждения.'
           : 'Вы вошли. Добро пожаловать обратно!');
-      if (!result.error && result.data.session) onSuccess?.();
+      if (!result.error && result.data.session) {
+        onSuccess?.();
+        if (mode === 'register') navigate('/profile');
+      }
     } catch {
       setNotice('Нет связи с сервисом. Проверьте интернет и попробуйте снова.');
     } finally {
