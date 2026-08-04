@@ -1,15 +1,14 @@
 import { createSupportPhrase } from './ai';
-import { getLocalDateKey, loadStoredTasks } from './tasks';
 
 const HISTORY_KEY = 'baw-support-phrases-v1';
 const HISTORY_LIMIT = 5;
 
 const fallbackPhrases = [
-  'Даже две минуты — уже спокойное движение вперёд.',
-  'Можно начать с самого маленького шага — этого достаточно.',
-  'Необязательно видеть весь путь, достаточно выбрать первый шаг.',
-  'Можно не спешить: начни с того, что сейчас кажется посильным.',
-  'Один небольшой шаг поможет мягко войти в работу.',
+  'Можно начать спокойно — не обязательно делать всё сразу.',
+  'Небольшое движение вперёд уже имеет значение.',
+  'Не нужно быть идеально готовым, чтобы начать.',
+  'Двигаться в удобном темпе — уже достаточно.',
+  'Мягкое начало тоже может быть хорошим началом.',
 ];
 
 function loadRecentPhrases() {
@@ -30,15 +29,9 @@ function rememberPhrase(phrase: string, recentPhrases: string[]) {
   );
 }
 
-function getCurrentTaskTitle() {
-  const tasks = loadStoredTasks().filter((task) => task.status !== 'done');
-  return tasks.find((task) => task.dueDate === getLocalDateKey())?.title
-    ?? tasks.find((task) => task.status === 'in_progress')?.title;
-}
-
 function cleanPhrase(value: string) {
   const phrase = value.replace(/^["«„]|["»“]$/g, '').replace(/\s+/g, ' ').trim();
-  if (!phrase || phrase.length > 140 || /[\r\n]/.test(value)) {
+  if (!phrase || phrase.length > 110 || /[\r\n]/.test(value)) {
     throw new Error('Некорректная поддерживающая фраза.');
   }
   return phrase;
@@ -48,12 +41,10 @@ function chooseFallback(recentPhrases: string[]) {
   return fallbackPhrases.find((phrase) => !recentPhrases.includes(phrase)) ?? fallbackPhrases[0];
 }
 
-export async function loadSupportPhrase(displayName?: string) {
+export async function loadSupportPhrase(_displayName?: string) {
   const recentPhrases = loadRecentPhrases();
   try {
     const generated = await createSupportPhrase({
-      displayName,
-      taskTitle: getCurrentTaskTitle(),
       recentPhrases,
     });
     const phrase = cleanPhrase(generated);
