@@ -25,6 +25,7 @@ export type TimerState = {
 };
 
 export const TIMER_STORAGE_KEY = 'baw-timer-v1';
+export const TASK_TIMERS_STORAGE_KEY = 'baw-task-timers-v1';
 export const SESSIONS_STORAGE_KEY = 'baw-timer-sessions-v1';
 export const FOCUS_SECONDS = 25 * 60;
 export const BREAK_SECONDS = 5 * 60;
@@ -66,5 +67,13 @@ export function loadTimerSessions() {
     return saved ? JSON.parse(saved) as TimerSession[] : [];
   } catch {
     return [];
+  }
+}
+
+export function loadTaskTimerStates() {
+  try {
+    return JSON.parse(window.localStorage.getItem(TASK_TIMERS_STORAGE_KEY) ?? '{}') as Record<string, TimerState>;
+  } catch {
+    return {};
   }
 }

@@ -10,7 +10,7 @@ export function TimerHistory({ sessions, onClear, onDelete }: Props) {
   return (
     <section className="timer-history" aria-labelledby="timer-history-title">
       <div className="timer-section-heading timer-history__heading">
-        <div><span className="tasks-eyebrow">История</span><h2 id="timer-history-title">Последние сессии</h2></div>
+        <div><span className="tasks-eyebrow">История</span><h2 className="cormorant-heading cormorant-heading--medium" id="timer-history-title">Последние сессии</h2></div>
         {sessions.length > 0 && <button className="timer-history__clear" type="button"
           onClick={() => setIsClearConfirmOpen(true)}>Очистить</button>}
       </div>

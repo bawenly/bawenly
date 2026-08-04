@@ -1,0 +1,39 @@
+.task-scenario-state {
+  display: grid;
+  min-height: calc(100vh - 90px);
+  padding: 28px clamp(18px, 4vw, 48px);
+  place-items: center;
+}
+
+.task-scenario-state__card {
+  display: grid;
+  width: min(720px, 100%);
+  min-height: 360px;
+  text-align: center;
+  place-content: center;
+  justify-items: center;
+}
+
+.task-scenario-state__card > p { margin: 22px 0 0; }
+.task-scenario-state__actions { display: flex; margin-top: 8px; gap: 18px; align-items: center; }
+.task-scenario-dots { display: flex; gap: 12px; }
+.task-scenario-dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #718f76;
+  opacity: .3;
+  animation: task-dot-glow 1.8s ease-in-out infinite;
+}
+.task-scenario-dots span:nth-child(2) { animation-delay: .3s; }
+.task-scenario-dots span:nth-child(3) { animation-delay: .6s; }
+
+@keyframes task-dot-glow {
+  0%, 65%, 100% { opacity: .3; transform: scale(.94); }
+  32% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-scenario-dots span { animation-name: task-dot-fade; transform: none; }
+  @keyframes task-dot-fade { 0%, 100% { opacity: .35; } 50% { opacity: .7; } }
+}

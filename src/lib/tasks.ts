@@ -9,7 +9,11 @@ export type TaskStep = {
   minutes: number;
   actualSeconds?: number;
   substeps?: TaskStep[];
+  support?: StepSupport;
 };
+
+export type StepSupportOption = { id: string; label: string; result: string };
+export type StepSupport = { message: string; options: StepSupportOption[] };
 
 export type Task = {
   id: string;
@@ -21,6 +25,9 @@ export type Task = {
   procrastinationReason?: string;
   steps?: TaskStep[];
   history?: TaskHistoryEntry[];
+  stepsGeneration?: 'loading' | 'error';
+  generationError?: string;
+  finalState?: string;
 };
 
 export type TaskHistoryEntry = {

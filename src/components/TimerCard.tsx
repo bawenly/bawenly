@@ -10,7 +10,9 @@ export function TimerCard() {
     <section className="progress-timer-card" aria-labelledby="progress-timer-title">
       <div>
         <span className="tasks-eyebrow">Время для себя</span>
-        <h2 id="progress-timer-title">{hasTimer ? state.taskTitle || 'Текущая сессия' : 'Готов продолжить?'}</h2>
+        <h2 className={hasTimer ? undefined : 'cormorant-heading cormorant-heading--medium'} id="progress-timer-title">
+          {hasTimer ? state.taskTitle || 'Текущая сессия' : 'Готов продолжить?'}
+        </h2>
         <p>{hasTimer
           ? `${state.mode === 'focus' ? 'Фокус' : 'Свободный режим'} · ${formatTimer(displaySeconds)}`
           : 'Выбери задачу и начни с одного спокойного шага.'}</p>

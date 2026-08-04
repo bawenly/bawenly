@@ -31,7 +31,7 @@ export function TimerPage() {
       <main className="timer-shell">
         <header className="timer-page-heading">
           <span className="tasks-eyebrow">Таймер</span>
-          <h1>Сосредоточься на одном шаге</h1>
+          <h1 className="cormorant-heading">Сосредоточься на одном шаге</h1>
           <p>Выбери свободный отсчёт или спокойный ритм 25/5.</p>
         </header>
 

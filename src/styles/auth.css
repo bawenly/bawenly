@@ -124,10 +124,15 @@
 }
 
 @media (max-width: 600px) {
-  .profile-page { padding-inline: 12px; }
-  .profile-page__shell > .brand { margin-top: 8px; }
-  .profile-card { padding-inline: 18px; }
-  .profile-card--editing { padding-inline: 8px; }
+  .profile-page { padding-inline: 0; }
+  .profile-page__shell > .brand { width: min(calc(100% - 8px), calc(50% + 132px)); margin: 8px auto 0; gap: 11px; font-size: 28px; }
+  .profile-page__shell > .brand .brand__logo { width: 50px; height: 50px; flex-basis: 50px; }
+  .profile-card { min-width: 0; padding-inline: 8px; }
+  .profile-card--editing { width: min(calc(100% - 8px), calc(50% + 132px)); padding-inline: 11px; }
+  .profile-editor .field,
+  .profile-editor .profile-card__actions { width: min(100%, 240px); }
+  .profile-editor .profile-card__actions { display: grid; grid-template-columns: 1fr 1fr; }
   .profile-editor__avatar-actions { gap: 4px; }
   .profile-editor .profile-link { min-height: 42px; padding-inline: 14px; }
+  .profile-card__actions { flex-wrap: wrap; gap: 8px; }
 }

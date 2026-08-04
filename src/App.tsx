@@ -13,6 +13,7 @@ import { ProfileProvider } from './components/ProfileProvider';
 import { SupportPage } from './pages/SupportPage';
 import { hasCompletedWelcome } from './lib/welcome';
 import { LanguageProvider } from './components/LanguageProvider';
+import { TaskWorkPage } from './pages/TaskWorkPage';
 
 function RootPage() {
   return hasCompletedWelcome() ? <HomePage /> : <Redirect to="/welcome" />;
@@ -25,11 +26,12 @@ export default function App() {
         <LanguageProvider><TimerProvider>
           <Switch>
           <Route path="/" component={RootPage} />
-          <Route path="/step" component={HomePage} />
+          <Route path="/step"><Redirect to="/" /></Route>
           <Route path="/welcome" component={WelcomePage} />
           <Route path="/register" component={RegisterPage} />
           <Route path="/profile" component={ProfilePage} />
           <Route path="/tasks" component={TasksPage} />
+          <Route path="/tasks/:id" component={TaskWorkPage} />
           <Route path="/progress" component={ProgressPage} />
           <Route path="/timer" component={TimerPage} />
           <Route path="/support" component={SupportPage} />

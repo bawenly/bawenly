@@ -1,19 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createStepSupport, resolveStepSupport, type StepSupportOption,
-  type StepSupportSuggestion } from '../lib/stepSupport';
+import { createStepSupport, resolveStepSupport } from '../lib/stepSupport';
 import { useLanguage } from './LanguageProvider';
+import type { StepSupport } from '../lib/tasks';
 
 const STORAGE_KEY = 'baw-step-support-v1';
-type SavedHelp = StepSupportSuggestion & { selectedId?: string; result?: string };
+type SavedOption = { id: string; label: string; intent: string; result?: string };
+type SavedHelp = { message: string; options: SavedOption[]; selectedId?: string; result?: string };
 type HelpStore = Record<string, SavedHelp>;
 export type ActiveStepSupport = { taskId: string; task: string; reason: string; stepId: string;
-  step: string; completedSteps: string[] };
+  step: string; completedSteps: string[]; preparedSupport?: StepSupport };
 
 function loadStore(): HelpStore {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as HelpStore; } catch { return {}; }
 }
 
-export function clearStepSupport() { localStorage.removeItem(STORAGE_KEY); }
+export function clearStepSupport(taskId?: string) {
+  if (!taskId) return localStorage.removeItem(STORAGE_KEY);
+  const next = Object.fromEntries(Object.entries(loadStore())
+    .filter(([key]) => !key.startsWith(`${taskId}:`)));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+}
 
 export function StepSupportPanel({ context }: { context: ActiveStepSupport }) {
   const { language } = useLanguage();
@@ -21,11 +27,17 @@ export function StepSupportPanel({ context }: { context: ActiveStepSupport }) {
   const [store, setStore] = useState<HelpStore>(loadStore);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const prepared = context.preparedSupport;
   const saved = store[cacheKey];
   const contextKey = useMemo(() => JSON.stringify(context), [context]);
 
   useEffect(() => {
     if (saved) return;
+    if (prepared) {
+      setStore((current) => ({ ...current, [cacheKey]: { message: prepared.message,
+        options: prepared.options.map((option) => ({ ...option, intent: '' })) } }));
+      return;
+    }
     let active = true;
     setLoading(true); setError('');
     void createStepSupport(context).then((suggestion) => {
@@ -35,11 +47,19 @@ export function StepSupportPanel({ context }: { context: ActiveStepSupport }) {
       if (active) setError(caught instanceof Error ? caught.message : '');
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [cacheKey, contextKey, saved]);
+  }, [cacheKey, contextKey, prepared, saved]);
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }, [store]);
 
-  async function selectOption(option: StepSupportOption) {
+  async function selectOption(option: SavedOption) {
+    const preparedOption = prepared?.options.find((item) => item.id === option.id);
+    if (preparedOption) {
+      setStore((current) => ({ ...current, [cacheKey]: {
+        message: prepared?.message ?? '', options: (prepared?.options ?? []).map((item) => ({ ...item, intent: '' })),
+        selectedId: option.id, result: preparedOption.result,
+      } }));
+      return;
+    }
     setStore((current) => ({ ...current, [cacheKey]: { ...current[cacheKey], selectedId: option.id } }));
     if (saved?.selectedId === option.id && saved.result) return;
     setLoading(true); setError('');

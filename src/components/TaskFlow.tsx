@@ -2,16 +2,15 @@ import { FormEvent, useEffect, useRef, useState, type KeyboardEvent } from 'reac
 import { useLocation } from 'wouter';
 import { createTaskPlan, simplifyStep } from '../lib/ai';
 import { formatTimer } from '../lib/timer';
-import { getLocalDateKey, type Task, type TaskStep } from '../lib/tasks';
+import { getLocalDateKey, type Task } from '../lib/tasks';
 import { persistTask, removeTask } from '../lib/taskRepository';
 import type { FlowStage } from '../pages/HomePage';
 import { useAuthModal } from './AuthModal';
 import { useTimer } from './TimerProvider';
 import { FlowNavigation } from './FlowNavigation';
 import { clearStepSupport, type ActiveStepSupport } from './StepSupportPanel';
-
-const TODAY_PLAN_KEY = 'baw-today-plan-v1';
-type TodayPlan = { taskId: string; taskTitle: string; reason: string; steps: TaskStep[] };
+import { ACTIVE_TASK_FLOW_KEY, clearTaskPlan, loadTaskFlowState, loadTaskPlan,
+  saveTaskFlowState, saveTaskPlan, type TodayPlan } from '../lib/taskFlowStorage';
 
 type Props = {
   stage: FlowStage;
@@ -19,36 +18,43 @@ type Props = {
   taskDraft: string;
   reason: string;
   onTaskDraftChange: (task: string) => void;
-  onTaskSubmit: (task: string) => void;
+  onTaskSubmit: (task: string) => Promise<void>;
   onStageChange: (stage: FlowStage) => void;
   onResetFlow: () => void;
   onStepSupportChange: (context: ActiveStepSupport | null) => void;
+  workspace?: 'today' | 'tasks';
+  onPlanReady?: (plan: TodayPlan) => void;
+  onCloseWorkspace?: () => void;
+  onBackWorkspace?: () => void;
+  externalPlan?: TodayPlan;
+  externalPlanLoading?: boolean;
+  externalError?: string;
+  onRetryPlan?: () => void;
 };
 
 export function TaskFlow({
   stage, task, taskDraft, reason, onTaskDraftChange, onTaskSubmit, onStageChange, onResetFlow,
   onStepSupportChange,
+  workspace = 'today', onPlanReady, onCloseWorkspace, onBackWorkspace, externalPlan, externalPlanLoading = false,
+  externalError = '', onRetryPlan,
 }: Props) {
   const [, setLocation] = useLocation();
   const { openAuth } = useAuthModal();
   const timer = useTimer();
   const returnLock = useRef(false);
+  const restoreViewedStep = useRef(Boolean(externalPlan && loadTaskFlowState(externalPlan.taskId)));
   const generationPromise = useRef<Promise<void> | null>(null);
+  const onPlanReadyRef = useRef(onPlanReady);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [generationAttempt, setGenerationAttempt] = useState(0);
-  const [viewedStepIndex, setViewedStepIndex] = useState(0);
+  const savedFlowState = externalPlan ? loadTaskFlowState(externalPlan.taskId) : null;
+  const [viewedStepIndex, setViewedStepIndex] = useState(savedFlowState?.viewedStepIndex ?? 0);
   const [isClosing, setIsClosing] = useState(false);
-  const [showCompletion, setShowCompletion] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(savedFlowState?.showCompletion ?? false);
   const [plan, setPlan] = useState<TodayPlan | null>(() => {
-    const stored = window.localStorage.getItem(TODAY_PLAN_KEY);
-    if (!stored) return null;
-    try {
-      const saved = JSON.parse(stored) as Omit<TodayPlan, 'taskId'> & { taskId?: string };
-      return { ...saved, taskId: saved.taskId ?? crypto.randomUUID() };
-    } catch {
-      return null;
-    }
+    return externalPlan ? loadTaskPlan(externalPlan.taskId) ?? externalPlan : null;
   });
   const currentPlan = plan?.taskTitle === task && plan.reason === reason ? plan : null;
   const currentStep = currentPlan?.steps.find((step) => !step.done) ?? null;
@@ -61,10 +67,35 @@ export function TaskFlow({
   const isStepActive = isCurrentStep && timer.state.targetSeconds !== null;
 
   useEffect(() => {
-    if (plan) window.localStorage.setItem(TODAY_PLAN_KEY, JSON.stringify(plan));
+    onPlanReadyRef.current = onPlanReady;
+  }, [onPlanReady]);
+
+  useEffect(() => {
+    if (plan) saveTaskPlan(plan);
   }, [plan]);
 
   useEffect(() => {
+    if (externalPlan) setPlan(externalPlan);
+  }, [externalPlan]);
+
+  useEffect(() => {
+    if (currentPlan) timer.activateTask(currentPlan.taskId, currentPlan.taskTitle);
+  }, [currentPlan?.taskId]);
+
+  useEffect(() => {
+    if (!currentPlan || workspace !== 'tasks') return;
+    saveTaskFlowState(currentPlan.taskId, {
+      stage: stage === 'reason' ? 'reason' : 'step',
+      viewedStepIndex,
+      showCompletion,
+    });
+  }, [currentPlan?.taskId, showCompletion, stage, viewedStepIndex, workspace]);
+
+  useEffect(() => {
+    if (restoreViewedStep.current) {
+      restoreViewedStep.current = false;
+      return;
+    }
     if (activeStepIndex >= 0) setViewedStepIndex(activeStepIndex);
   }, [activeStepIndex]);
 
@@ -82,7 +113,8 @@ export function TaskFlow({
       return;
     }
     onStepSupportChange({ taskId: currentPlan.taskId, task, reason, stepId: viewedStep.id,
-      step: viewedStep.title, completedSteps: currentPlan.steps.filter((step) => step.done).map((step) => step.title) });
+      step: viewedStep.title, completedSteps: currentPlan.steps.filter((step) => step.done).map((step) => step.title),
+      preparedSupport: viewedStep.support });
   }, [currentPlan, onStepSupportChange, reason, stage, task, viewedStep]);
 
   function taskFromPlan(nextPlan: TodayPlan, status?: Task['status']): Task {
@@ -95,6 +127,7 @@ export function TaskFlow({
       estimatedMinutes: nextPlan.steps.reduce((total, step) => total + step.minutes, 0),
       steps: nextPlan.steps,
       procrastinationReason: nextPlan.reason,
+      finalState: nextPlan.finalState,
     };
   }
 
@@ -121,7 +154,7 @@ export function TaskFlow({
   }, []);
 
   useEffect(() => {
-    if (stage !== 'step' || (currentPlan?.steps.length && generationAttempt === 0)) return;
+    if (workspace === 'tasks' || stage !== 'step' || (currentPlan?.steps.length && generationAttempt === 0)) return;
     let cancelled = false;
     setIsLoading(true);
     setError('');
@@ -135,7 +168,9 @@ export function TaskFlow({
         if (cancelled) return;
         const next = { ...basePlan, steps };
         setPlan(next);
-        return persistTask(taskFromPlan(next)).then(() => undefined);
+        return persistTask(taskFromPlan(next)).then(() => {
+          onPlanReadyRef.current?.(next);
+        });
       }).catch((caught: unknown) => {
       if (cancelled) return;
       setError(caught instanceof Error ? caught.message : 'Не получилось составить шаги.');
@@ -146,18 +181,23 @@ export function TaskFlow({
     return () => { cancelled = true; };
   }, [generationAttempt, reason, stage, task]);
 
-  function submit(event: FormEvent) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
     const submittedTask = taskDraft.trim();
     if (!submittedTask) {
       setError('Напиши задачу — можно всего пару слов.');
       return;
     }
     setError('');
+    setIsSubmitting(true);
     openAuth(() => {
-      onTaskSubmit(submittedTask);
-      onStageChange('reason');
-    });
+      void onTaskSubmit(submittedTask).catch((caught: unknown) => {
+        setError(caught instanceof Error
+          ? caught.message
+          : 'Не получилось создать задачу. Попробуй ещё раз.');
+      }).finally(() => setIsSubmitting(false));
+    }, () => setIsSubmitting(false));
   }
 
   function submitTaskWithEnter(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -215,21 +255,35 @@ export function TaskFlow({
       return;
     }
     if (viewedStepIndex > 0) {
-      if (isViewingCurrentStep && timer.state.isRunning) timer.toggle();
       setViewedStepIndex((index) => index - 1);
       return;
     }
-    if (timer.state.isRunning && timer.state.taskId === currentPlan?.taskId) timer.toggle();
+    if (workspace === 'tasks') {
+      window.localStorage.removeItem(ACTIVE_TASK_FLOW_KEY);
+      onBackWorkspace?.();
+      return;
+    }
     onStageChange('reason');
   }
 
   async function closeAndDelete() {
     if (isClosing) return;
-    const taskId = currentPlan?.taskId ?? (plan?.taskTitle === task ? plan.taskId : null);
+    if (workspace === 'tasks') {
+      window.localStorage.removeItem(ACTIVE_TASK_FLOW_KEY);
+      if (currentPlan) {
+        timer.clearTask(currentPlan.taskId);
+        clearTaskPlan(currentPlan.taskId);
+        clearStepSupport(currentPlan.taskId);
+      }
+      onCloseWorkspace?.();
+      return;
+    }
+    const ownsStoredPlan = plan?.taskTitle === task;
+    const taskId = currentPlan?.taskId ?? (ownsStoredPlan ? plan.taskId : null);
     setIsClosing(true);
     if (taskId) timer.clearTask(taskId);
-    window.localStorage.removeItem(TODAY_PLAN_KEY);
-    clearStepSupport();
+    if (ownsStoredPlan && taskId) clearTaskPlan(taskId);
+    clearStepSupport(taskId ?? undefined);
     setPlan(null);
     onResetFlow();
     setLocation('/');
@@ -251,12 +305,24 @@ export function TaskFlow({
     if (!currentPlan || !isComplete || returnLock.current) return;
     returnLock.current = true;
     void persistTask(taskFromPlan(currentPlan, 'done'));
-    window.localStorage.removeItem(TODAY_PLAN_KEY);
-    clearStepSupport();
+    timer.clearTask(currentPlan.taskId);
+    clearTaskPlan(currentPlan.taskId);
+    clearStepSupport(currentPlan.taskId);
     window.dispatchEvent(new CustomEvent('baw-tasks-changed'));
     onResetFlow();
     setLocation('/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function finishTasksWorkspace() {
+    window.localStorage.removeItem(ACTIVE_TASK_FLOW_KEY);
+    if (currentPlan) timer.clearTask(currentPlan.taskId);
+    if (currentPlan) {
+      clearTaskPlan(currentPlan.taskId);
+      clearStepSupport(currentPlan.taskId);
+    }
+    window.dispatchEvent(new CustomEvent('baw-tasks-changed'));
+    onCloseWorkspace?.();
   }
 
   if (stage === 'step') {
@@ -266,12 +332,13 @@ export function TaskFlow({
           <FlowNavigation onBack={goBack} onClose={() => void closeAndDelete()} isClosing={isClosing} />
           <span className="task-card__kicker">Задача завершена</span>
           <h2>Готово — все шаги выполнены</h2>
-          <p>Ты последовательно завершил задачу «{task}».</p>
+          <p>{currentPlan?.finalState || `Ты последовательно завершил задачу «${task}».`}</p>
           <div className="task-card__result-actions">
-            <button className="result-back-button" type="button" onClick={returnToToday}
-              aria-label="Вернуться на главную страницу «Сегодня»">
+            <button className="result-back-button" type="button"
+              onClick={workspace === 'tasks' ? finishTasksWorkspace : returnToToday}
+              aria-label={workspace === 'tasks' ? 'Вернуться к списку задач' : 'Вернуться на главную страницу «Сегодня»'}>
               <span aria-hidden="true">←</span>
-              <span>Сегодня</span>
+              <span>{workspace === 'tasks' ? 'Задачи' : 'Сегодня'}</span>
             </button>
           </div>
         </section>
@@ -284,12 +351,12 @@ export function TaskFlow({
         <h2>Текущий шаг</h2>
         <div className="first-step">
           <span className="first-step__number">{String(viewedStepIndex + 1).padStart(2, '0')}</span>
-          <p>{isLoading && !viewedStep ? 'ИИ подбирает маленький шаг…' : viewedStep?.title || 'Попробуй обновить ответ.'}</p>
+          <p>{(isLoading || externalPlanLoading) && !viewedStep ? 'ИИ подбирает маленький шаг…' : viewedStep?.title || 'Попробуй обновить ответ.'}</p>
         </div>
         <div className="step-meta"><span>≈ {viewedStep?.minutes ?? '—'} мин</span>
           <span>{viewedStepIndex + 1} из {currentPlan?.steps.length ?? '—'}</span></div>
         {isViewingCurrentStep && isCurrentStep && <div className="timer" role="timer">{formatTimer(timer.displaySeconds)}</div>}
-        {error && <p className="ai-error" role="alert">{error}</p>}
+        {(error || externalError) && <p className="ai-error" role="alert">{error || externalError}</p>}
         <div className="task-card__actions">
           {isViewingCurrentStep && isStepActive ? (
             <div className="task-card__step-controls">
@@ -303,18 +370,19 @@ export function TaskFlow({
               </button>
             </div>
           ) : (
-            <button className="primary-action" type="button" disabled={!viewedStep}
+            <button className="primary-action" type="button" disabled={!viewedStep || externalPlanLoading
+              || (timer.state.isRunning && timer.state.taskId !== currentPlan?.taskId)}
               onClick={isViewingCurrentStep ? startCurrentStep : goToNextStep}>
               {isViewingCurrentStep ? 'Начать' : 'Дальше'} <span aria-hidden="true">→</span>
             </button>
           )}
-          <button className="text-action" type="button" disabled={!currentStep || isLoading}
+          <button className="text-action" type="button" disabled={!currentStep || isLoading || externalPlanLoading}
             hidden={!isViewingCurrentStep} onClick={() => void makeSimpler()}>
             {isLoading ? 'Упрощаю…' : 'Сделать шаг ещё проще'}
           </button>
-          {error && !currentStep && (
+          {(error || externalError) && !currentStep && (
             <button className="text-action" type="button" disabled={isLoading}
-              onClick={() => setGenerationAttempt((value) => value + 1)}>
+              onClick={() => onRetryPlan ? onRetryPlan() : setGenerationAttempt((value) => value + 1)}>
               Повторить генерацию
             </button>
           )}
@@ -326,10 +394,12 @@ export function TaskFlow({
   return (
     <form className="task-card" onSubmit={submit}>
       {stage === 'reason' && (
-        <FlowNavigation onClose={() => void closeAndDelete()} isClosing={isClosing} />
+        <FlowNavigation onBack={onBackWorkspace} onClose={() => void closeAndDelete()} isClosing={isClosing} />
       )}
       {stage === 'reason' && <span className="task-card__kicker">Задача сохранена</span>}
-      <h2>{stage === 'reason' ? task : 'Что ты откладываешь?'}</h2>
+      <h2 className={stage === 'task' ? 'cormorant-heading cormorant-heading--semibold' : undefined}>
+        {stage === 'reason' ? task : 'Что ты откладываешь?'}
+      </h2>
       <p>{stage === 'reason' ? 'Остался один короткий вопрос справа.' : 'Опиши задачу — мы найдём самый простой способ к ней подступиться.'}</p>
       {stage === 'task' && <>
         <label className="sr-only" htmlFor="task-input">Задача, которую ты откладываешь</label>
@@ -345,7 +415,9 @@ export function TaskFlow({
             <button className="support-action" type="button" onClick={() => setLocation('/support')}>
               Мне нужна поддержка
             </button>
-            <button className="primary-action" type="submit">Помоги мне начать <span aria-hidden="true">→</span></button>
+            <button className="primary-action" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Создаю задачу…' : 'Помоги мне начать'} <span aria-hidden="true">→</span>
+            </button>
           </div>
         </div>
       </>}

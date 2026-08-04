@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 @import './styles/base.css';
 @import './styles/welcome.css';
 @import './styles/auth.css';
@@ -9,6 +9,7 @@
 @import './styles/task-actions.css';
 @import './styles/tasks-responsive.css';
 @import './styles/task-steps.css';
+@import './styles/task-scenario.css';
 @import './styles/task-toolbar.css';
 @import './styles/task-deadlines.css';
 @import './styles/timer.css';
@@ -17,3 +18,4 @@
 @import './styles/ai.css';
 @import './styles/support-agent.css';
 @import '/src/styles/app-modal.css';
+@import './styles/selected-headings.css';

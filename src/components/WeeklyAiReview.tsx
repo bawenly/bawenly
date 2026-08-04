@@ -26,7 +26,7 @@ export function WeeklyAiReview({ sessions }: { sessions: TimerSession[] }) {
   return (
     <section className="ai-insight ai-insight--weekly">
       <span className="tasks-eyebrow">✦ Разбор с ИИ</span>
-      <h2>Твоя неделя фокуса</h2>
+      <h2 className="cormorant-heading cormorant-heading--medium">Твоя неделя фокуса</h2>
       {recentSessions.length === 0
         ? <p>Сначала заверши хотя бы одну сессию — тогда ИИ сможет заметить твой ритм.</p>
         : review

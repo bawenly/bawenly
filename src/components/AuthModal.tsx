@@ -3,7 +3,7 @@ import { AuthForm } from './AuthForm';
 import { supabase } from '../lib/supabase';
 
 type AuthModalContextValue = {
-  openAuth: (onSuccess?: () => void) => void;
+  openAuth: (onSuccess?: () => void, onCancel?: () => void) => void;
 };
 
 const AuthModalContext = createContext<AuthModalContextValue | null>(null);
@@ -11,26 +11,32 @@ const AuthModalContext = createContext<AuthModalContextValue | null>(null);
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const successAction = useRef<(() => void) | undefined>();
+  const cancelAction = useRef<(() => void) | undefined>();
 
   const close = useCallback(() => {
+    const action = cancelAction.current;
     setIsOpen(false);
     successAction.current = undefined;
+    cancelAction.current = undefined;
+    action?.();
   }, []);
 
   const completeAuth = useCallback(() => {
     const action = successAction.current;
     successAction.current = undefined;
+    cancelAction.current = undefined;
     setIsOpen(false);
     action?.();
   }, []);
 
-  const openAuth = useCallback((onSuccess?: () => void) => {
+  const openAuth = useCallback((onSuccess?: () => void, onCancel?: () => void) => {
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         onSuccess?.();
         return;
       }
       successAction.current = onSuccess;
+      cancelAction.current = onCancel;
       setIsOpen(true);
     });
   }, []);

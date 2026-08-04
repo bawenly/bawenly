@@ -10,10 +10,9 @@ export function WelcomePage() {
         <Brand />
         <section className="welcome-hero" aria-labelledby="welcome-title">
           <div className="welcome-copy">
-            <p className="eyebrow">Маленькие шаги. Большие перемены.</p>
             <h1 id="welcome-title">Сделай первый шаг.</h1>
             <p className="welcome-copy__lead">
-              Начни с небольшой цели и преврати её в устойчивую привычку.
+              Разбивай сложные задачи на понятные шаги и начинай без лишнего стресса.
             </p>
             <Link className="primary-button" href="/" onClick={completeWelcome}>
               Начать <span aria-hidden="true">→</span>

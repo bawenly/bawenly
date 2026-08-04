@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { useLocation } from 'wouter';
 import { statusLabels, withRecalculatedStatus, type Task } from '../lib/tasks';
 import { AiTaskTools } from './AiTaskTools';
 import { CollapseStepsDialog } from './CollapseStepsDialog';
 import { TaskActionsMenu } from './TaskActionsMenu';
 import { TaskDeadline } from './TaskDeadline';
 import { TaskSteps } from './TaskSteps';
-import { useTimer } from './TimerProvider';
 
-type Props = { task: Task; onChange: (task: Task) => void; onDelete: () => void };
+type Props = {
+  task: Task;
+  onChange: (task: Task) => void;
+  onContinue: () => void;
+  onDelete: () => void;
+};
 
 function formatEstimate(minutes: number) {
   if (minutes < 60) return `≈ ${minutes} мин`;
@@ -17,9 +20,7 @@ function formatEstimate(minutes: number) {
   return `≈ ${hours} ч${rest ? ` ${rest} мин` : ''}`;
 }
 
-export function TaskCard({ task, onChange, onDelete }: Props) {
-  const timer = useTimer();
-  const [, setLocation] = useLocation();
+export function TaskCard({ task, onChange, onContinue, onDelete }: Props) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCollapseDialogOpen, setIsCollapseDialogOpen] = useState(false);
@@ -32,6 +33,7 @@ export function TaskCard({ task, onChange, onDelete }: Props) {
   const totalMinutes = task.steps?.reduce((sum, step) => sum + step.minutes, 0)
     ?? task.estimatedMinutes;
   const isComposite = total > 0;
+  const isComplete = task.status === 'done' || (isComposite && completed === total);
 
   function changeStatus() {
     if (isComposite) return;
@@ -39,15 +41,7 @@ export function TaskCard({ task, onChange, onDelete }: Props) {
   }
 
   function handlePrimaryAction() {
-    if (task.status === 'paused') return;
-    if (isComposite) {
-      onChange({ ...task, status: 'in_progress' });
-      const step = task.steps?.find((item) => !item.done);
-      if (step) timer.startStep(task.id, task.title, step);
-      setLocation('/timer');
-      return;
-    }
-    onChange({ ...task, status: task.status === 'not_started' ? 'in_progress' : 'done' });
+    onContinue();
   }
 
   function collapseSteps() {
@@ -85,6 +79,12 @@ export function TaskCard({ task, onChange, onDelete }: Props) {
             <span className={`status-badge status-badge--${task.status}`}>{statusLabels[task.status]}</span>
           </div>
           <TaskDeadline dueDate={task.dueDate} onChange={(dueDate) => onChange({ ...task, dueDate })} />
+          {task.stepsGeneration === 'loading' && (
+            <div className="simple-task-meta" role="status">ИИ аккуратно составляет шаги…</div>
+          )}
+          {task.stepsGeneration === 'error' && (
+            <div className="simple-task-meta" role="status">Не получилось составить шаги. Попробуем снова автоматически.</div>
+          )}
           {isComposite ? (
             <>
               <div className="task-progress-meta"><span>{completed} из {total} шагов</span><strong>{progress}%</strong></div>
@@ -102,9 +102,9 @@ export function TaskCard({ task, onChange, onDelete }: Props) {
           )}
         </div>
         <div className="task-list-card__buttons">
-          {task.status !== 'done' && task.status !== 'paused' && (
+          {!isComplete && (
             <button className="continue-button" type="button" onClick={handlePrimaryAction}>
-              {isComposite ? 'Продолжить' : task.status === 'not_started' ? 'Начать' : 'Выполнить'}
+              {task.status !== 'not_started' ? 'Продолжить' : 'Начать'}
             </button>
           )}
           {isComposite && (
@@ -120,7 +120,7 @@ export function TaskCard({ task, onChange, onDelete }: Props) {
             onToggle={() => setIsMenuOpen((value) => !value)} />
         </div>
       </div>
-      {task.status !== 'done' && (
+      {task.status !== 'done' && task.stepsGeneration !== 'loading' && (
         <AiTaskTools task={task} onChange={onChange} onExpanded={() => setIsExpanded(true)} />
       )}
       {isExpanded && task.steps && (

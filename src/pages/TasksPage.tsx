@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'wouter';
 import { DashboardHeader } from '../components/DashboardHeader';
 import { TaskCard } from '../components/TaskCard';
 import { TaskComposer } from '../components/TaskComposer';
 import { getLocalDateKey, loadStoredTasks, TASKS_STORAGE_KEY, type Task, type TaskFilter } from '../lib/tasks';
 import { useAuthModal } from '../components/AuthModal';
 import { loadUserTasks, persistTask, removeTask } from '../lib/taskRepository';
+import { ACTIVE_TASK_FLOW_KEY, ACTIVE_TASK_ORIGIN_KEY, PENDING_TASK_KEY } from '../lib/taskFlowStorage';
 
 const filters: { value: TaskFilter; label: string }[] = [
   { value: 'all', label: 'Все' },
@@ -15,6 +17,7 @@ const filters: { value: TaskFilter; label: string }[] = [
 
 export function TasksPage() {
   const { openAuth } = useAuthModal();
+  const [, setLocation] = useLocation();
   const [tasks, setTasks] = useState<Task[]>(loadStoredTasks);
   const [today, setToday] = useState(getLocalDateKey);
   const [filter, setFilter] = useState<TaskFilter>('all');
@@ -51,6 +54,18 @@ export function TasksPage() {
     return matchesSearch && matchesFilter;
   }), [filter, query, tasks, today]);
 
+  function continueTask(task: Task) {
+    window.localStorage.removeItem(PENDING_TASK_KEY);
+    window.localStorage.setItem(ACTIVE_TASK_FLOW_KEY, task.id);
+    window.localStorage.setItem(ACTIVE_TASK_ORIGIN_KEY, 'tasks');
+    setLocation(`/tasks/${task.id}`);
+  }
+
+  function requestContinue(task: Task) {
+    window.localStorage.setItem(PENDING_TASK_KEY, task.id);
+    openAuth(() => continueTask(task));
+  }
+
   function updateTask(nextTask: Task) {
     setTasks((current) => current.map((task) => task.id === nextTask.id ? nextTask : task));
     void persistTask(nextTask);
@@ -62,7 +77,7 @@ export function TasksPage() {
       <main className="tasks-shell">
         <section className="tasks-toolbar" aria-labelledby="tasks-title">
           <div className="tasks-toolbar__top">
-            <h1 id="tasks-title">Мои задачи</h1>
+            <h1 className="cormorant-heading cormorant-heading--prominent" id="tasks-title">Мои задачи</h1>
           </div>
           <div className="tasks-toolbar__controls">
             <label className="task-search">
@@ -91,6 +106,7 @@ export function TasksPage() {
         <section className="tasks-list" aria-label="Список задач">
           {visibleTasks.map((task) => (
             <TaskCard task={task} key={task.id} onChange={updateTask}
+              onContinue={() => requestContinue(task)}
               onDelete={() => {
                 setTasks((current) => current.filter((item) => item.id !== task.id));
                 void removeTask(task.id);

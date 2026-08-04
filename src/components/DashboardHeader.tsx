@@ -43,7 +43,7 @@ export function DashboardHeader() {
         <Brand />
         <nav className="dashboard-nav" aria-label="Основная навигация">
           <Link className={`dashboard-nav__link${location === '/' ? ' dashboard-nav__link--active' : ''}`} href="/">Сегодня</Link>
-          <Link className={`dashboard-nav__link${location === '/tasks' ? ' dashboard-nav__link--active' : ''}`} href="/tasks">Задачи</Link>
+          <Link className={`dashboard-nav__link${location.startsWith('/tasks') ? ' dashboard-nav__link--active' : ''}`} href="/tasks">Задачи</Link>
           <Link className={`dashboard-nav__link${location === '/progress' ? ' dashboard-nav__link--active' : ''}`} href="/progress">Прогресс</Link>
           <Link className={`dashboard-nav__link${location === '/timer' ? ' dashboard-nav__link--active' : ''}`} href="/timer">Таймер</Link>
         </nav>

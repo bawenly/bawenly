@@ -59,10 +59,7 @@ export function SupportPanel({
             className={selectedReason === label ? 'reason-option reason-option--selected' : 'reason-option'}
             type="button"
             key={label}
-            onClick={() => {
-              onReasonChange(label);
-              window.setTimeout(() => onReasonSelect(label), 220);
-            }}
+            onClick={() => onReasonSelect(label)}
             aria-pressed={selectedReason === label}
           >
             <span className="reason-option__icon" aria-hidden="true">{icon}</span>
@@ -74,7 +71,10 @@ export function SupportPanel({
           <span className="reason-option__icon" aria-hidden="true">✎</span>
           <label className="sr-only" htmlFor="custom-reason">Своя причина прокрастинации</label>
           <input id="custom-reason" value={customReason} placeholder="Определить самому"
-            onChange={(event) => onReasonChange(event.target.value)} />
+            onChange={(event) => onReasonChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') event.stopPropagation();
+            }} />
           <button type="submit" aria-label="Выбрать свою причину" disabled={!customReason.trim()}>→</button>
         </form>
       </div>
