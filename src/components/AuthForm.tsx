@@ -79,12 +79,27 @@ export function AuthForm({ onSuccess }: Props) {
     }
     setBusy(true);
     setNotice('');
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/profile` },
-    });
-    if (error) {
-      setNotice(getAuthErrorMessage(error, 'google'));
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/profile`,
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) {
+        setNotice(getAuthErrorMessage(error, 'google'));
+        setBusy(false);
+        return;
+      }
+      if (!data.url) {
+        setNotice('Google-вход временно недоступен. Попробуйте ещё раз.');
+        setBusy(false);
+        return;
+      }
+      window.location.assign(data.url);
+    } catch {
+      setNotice('Нет связи с сервисом Google. Проверьте интернет и попробуйте снова.');
       setBusy(false);
     }
   };
