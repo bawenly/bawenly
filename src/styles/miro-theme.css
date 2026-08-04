@@ -84,7 +84,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   border-color: #4262ff;
   box-shadow: 0 0 0 3px rgba(66, 98, 255, .14);
 }
-.step-meta span { color: #555a6a; background: #fff4c4; }
+.step-meta span,.current-step-heading__progress { color: #555a6a; background: #fff4c4; }
 .recent-card { border-color: #eef0f3; border-radius: 16px; background: #fff; }
 .recent-card__check { color: #187574; background: #c3faf5; }
 .stat-card { border-radius: 28px; }

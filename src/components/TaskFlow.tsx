@@ -348,13 +348,17 @@ export function TaskFlow({
       <section className="task-card task-card--result" aria-live="polite">
         <FlowNavigation onBack={goBack} onClose={() => void closeAndDelete()} isClosing={isClosing} />
         <span className="task-card__kicker">Твоя задача: {task}</span>
-        <h2>Текущий шаг</h2>
+        <div className="current-step-heading">
+          <h2>Текущий шаг</h2>
+          <span className="current-step-heading__progress">
+            {viewedStepIndex + 1}/{currentPlan?.steps.length ?? '—'}
+          </span>
+        </div>
         <div className="first-step">
           <span className="first-step__number">{String(viewedStepIndex + 1).padStart(2, '0')}</span>
           <p>{(isLoading || externalPlanLoading) && !viewedStep ? 'ИИ подбирает маленький шаг…' : viewedStep?.title || 'Попробуй обновить ответ.'}</p>
         </div>
-        <div className="step-meta"><span>≈ {viewedStep?.minutes ?? '—'} мин</span>
-          <span>{viewedStepIndex + 1} из {currentPlan?.steps.length ?? '—'}</span></div>
+        <div className="step-meta"><span>≈ {viewedStep?.minutes ?? '—'} мин</span></div>
         {isViewingCurrentStep && isCurrentStep && <div className="timer" role="timer">{formatTimer(timer.displaySeconds)}</div>}
         {(error || externalError) && <p className="ai-error" role="alert">{error || externalError}</p>}
         <div className="task-card__actions">

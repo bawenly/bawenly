@@ -93,7 +93,7 @@ h1, h2, .welcome-copy h1, .dashboard-intro h1, .tasks-toolbar__top h1,
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(204,120,92,.14);
 }
-.step-meta span { color: var(--ink); background: #efe9de; }
+.step-meta span,.current-step-heading__progress { color: var(--ink); background: #efe9de; }
 .recent-card { border-color: #e6dfd8; border-radius: 12px; background: #fffdfa; }
 .recent-card__check { color: #fff; background: var(--green); }
 .stat-card { border-radius: 12px; }

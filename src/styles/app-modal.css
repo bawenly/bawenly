@@ -1,6 +1,6 @@
-.app-modal-open { overflow: hidden; }
-.app-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; overflow-y: auto; padding: 24px; place-items: center; background: rgba(23,32,51,.3); backdrop-filter: blur(6px); animation: app-modal-backdrop-in 220ms ease-out both; }
-.app-modal { width: min(100%,520px); max-height: min(760px,calc(100svh - 48px)); overflow: hidden; border: 1px solid rgba(23,32,51,.09); border-radius: 24px; background: #fbfaf6; box-shadow: 0 26px 80px rgba(23,32,51,.22); transform-origin: center; animation: app-modal-in 220ms cubic-bezier(.22,.8,.3,1) both; }
+html.app-modal-open,body.app-modal-open { overflow: hidden; overscroll-behavior: none; }
+.app-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; overflow: hidden; padding: calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left)); place-items: center; background: rgba(23,32,51,.3); backdrop-filter: blur(6px); animation: app-modal-backdrop-in 220ms ease-out both; }
+.app-modal { display: grid; width: min(100%,520px); max-height: min(760px,100%); min-height: 0; overflow: hidden; grid-template-rows: auto minmax(0,1fr) auto; border: 1px solid rgba(23,32,51,.09); border-radius: 24px; background: #fbfaf6; box-shadow: 0 26px 80px rgba(23,32,51,.22); transform-origin: center; animation: app-modal-in 220ms cubic-bezier(.22,.8,.3,1) both; }
 .app-modal-backdrop--closing { pointer-events: none; animation: app-modal-backdrop-out 220ms ease-in both; }
 .app-modal-backdrop--closing .app-modal { animation: app-modal-out 220ms cubic-bezier(.4,0,.6,1) both; }
 @keyframes app-modal-backdrop-in { from { opacity: 0; backdrop-filter: blur(0); } }
@@ -11,7 +11,8 @@
 .app-modal__header h2 { margin: 0; font-size: 24px; letter-spacing: -.035em; }
 .app-modal__header button { display: grid; width: 40px; height: 40px; flex: 0 0 auto; padding: 0; place-items: center; border: 0; border-radius: 12px; color: #687064; background: transparent; font-size: 25px; cursor: pointer; }
 .app-modal__header button:hover { background: #eae8e1; }
-.app-modal__content { overflow-y: auto; padding: 8px 28px 24px; overscroll-behavior: contain; }
+.app-modal__content { min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 8px 28px 24px; overscroll-behavior: contain; scrollbar-gutter: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+.app-modal__content:focus-visible { outline: 3px solid rgba(82,109,88,.25); outline-offset: -3px; }
 .app-modal__actions { display: flex; min-height: 82px; padding: 18px 28px 22px; align-items: center; justify-content: flex-end; gap: 10px; border-top: 1px solid rgba(23,32,51,.08); }
 .app-modal__actions:empty { display: none; }
 .app-modal__actions button,.timer-task-empty button { min-height: 46px; padding: 0 18px; border: 1px solid rgba(23,32,51,.12); border-radius: 13px; color: #526d58; background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
@@ -21,7 +22,7 @@
 .app-modal__form label { color: #687064; font-size: 13px; font-weight: 700; }
 .app-modal__form input { width: 100%; min-height: 52px; padding: 0 15px; border: 1px solid rgba(23,32,51,.14); border-radius: 14px; outline: 0; color: #172033; background: #fff; font: inherit; }
 .app-modal__form input:focus { border-color: #718f76; box-shadow: 0 0 0 4px rgba(113,143,118,.14); }
-.timer-task-options { display: grid; max-height: min(440px,55svh); gap: 9px; overflow-y: auto; overscroll-behavior: contain; }
+.timer-task-options { display: grid; min-height: 0; gap: 9px; }
 .timer-task-option { display: grid; width: 100%; padding: 16px; gap: 9px; border: 1px solid rgba(23,32,51,.1); border-radius: 16px; color: #172033; background: #fff; text-align: left; font: inherit; cursor: pointer; }
 .timer-task-option:hover { border-color: rgba(113,143,118,.5); }
 .timer-task-option--selected { border-color: #718f76; background: #edf1e9; box-shadow: 0 0 0 2px rgba(113,143,118,.12); }
@@ -29,7 +30,7 @@
 .timer-task-option small { color: #858b82; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .timer-task-empty { display: grid; padding: 12px 0 8px; justify-items: start; gap: 18px; }
 .timer-task-empty p { margin: 0; color: #687064; line-height: 1.55; }
-@media(max-width:600px){.app-modal-backdrop{padding:12px;place-items:end center}.app-modal{width:100%;max-height:calc(100svh - 24px);border-radius:22px}.app-modal__header{padding:21px 20px 12px}.app-modal__content{padding:8px 20px 20px}.app-modal__actions{min-height:76px;padding:15px 20px 18px}.app-modal__actions button{flex:1}.timer-task-options{max-height:50svh}}
+@media(max-width:600px){.app-modal-backdrop{padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}.app-modal{width:100%;max-height:100%;border-radius:22px}.app-modal__header{padding:21px 20px 12px}.app-modal__content{padding:8px 20px 20px}.app-modal__actions{min-height:76px;padding:15px 20px 18px}.app-modal__actions button{flex:1}}
 @media (prefers-reduced-motion: reduce) {
   .app-modal-backdrop, .app-modal-backdrop--closing { animation-duration: 100ms; }
   .app-modal, .app-modal-backdrop--closing .app-modal { animation-name: app-modal-fade-in; animation-duration: 100ms; transform: none; }

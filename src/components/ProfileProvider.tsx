@@ -47,11 +47,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     void supabase.auth.getSession().then(({ data }) => applyUser(data.session?.user ?? null));
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUser = session?.user ?? null;
+      if (active) {
+        setUser(nextUser);
+        if (!nextUser) setProfile(null);
+      }
       // Supabase auth callbacks must finish before another Supabase request starts.
       // Defer profile loading so sign-in/sign-up can release the auth lock first.
       window.clearTimeout(authUpdateTimer);
       authUpdateTimer = window.setTimeout(() => {
-        void applyUser(session?.user ?? null);
+        void applyUser(nextUser);
       }, 0);
     });
     return () => {

@@ -30,10 +30,13 @@
 .step-support__back { margin: 0 0 18px; padding: 0; border: 0; color: #526d58; background: transparent; font: inherit; font-size: 13px; cursor: pointer; }
 .step-support__result { margin: 8px 0 0; color: #525b51; line-height: 1.6; white-space: pre-wrap; }
 .first-step { display: grid; margin-top: 30px; align-items: start; gap: 18px; grid-template-columns: auto 1fr; }
+.current-step-heading { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.current-step-heading h2 { margin: 0; }
+.current-step-heading__progress { display: inline-flex; align-self: center; align-items: center; justify-content: center; transform: translateY(3px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .first-step__number { display: grid; width: 54px; height: 54px; border-radius: 16px; color: #526d58; background: #e7ede3; font-size: 13px; font-weight: 700; place-items: center; }
 .first-step p { max-width: 620px; margin: 3px 0 0; font-size: clamp(20px,2.4vw,29px); line-height: 1.35; }
 .step-meta { display: flex; gap: 10px; margin: 24px 0 4px 72px; flex-wrap: wrap; }
-.step-meta span { padding: 8px 12px; border-radius: 99px; color: #687064; background: #f0f1eb; font-size: 12px; }
+.step-meta span,.current-step-heading__progress { padding: 8px 12px; border-radius: 99px; color: #687064; background: #f0f1eb; font-size: 12px; }
 .timer { margin-top: 20px; color: #526d58; font-size: 34px; font-weight: 600; letter-spacing: -.04em; }
 .section-heading { display: flex; margin-bottom: 14px; align-items: center; justify-content: space-between; }
 .section-heading h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.025em; }

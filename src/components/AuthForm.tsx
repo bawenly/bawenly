@@ -1,5 +1,4 @@
 import { FormEvent, useId, useState } from 'react';
-import { useLocation } from 'wouter';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { getAuthErrorMessage } from '../lib/authMessages';
 
@@ -11,7 +10,6 @@ type Props = {
 };
 
 export function AuthForm({ onSuccess }: Props) {
-  const [, navigate] = useLocation();
   const emailId = useId();
   const passwordId = useId();
   const [mode, setMode] = useState<AuthMode>('register');
@@ -49,16 +47,22 @@ export function AuthForm({ onSuccess }: Props) {
     }
     setBusy(true);
     try {
-      const result = mode === 'register'
+      let result = mode === 'register'
         ? await supabase.auth.signUp({
             email: email.trim().toLowerCase(),
             password,
-            options: { emailRedirectTo: `${window.location.origin}/profile` },
+            options: { emailRedirectTo: window.location.origin },
           })
         : await supabase.auth.signInWithPassword({
             email: email.trim().toLowerCase(),
             password,
           });
+      if (mode === 'register' && !result.error && !result.data.session) {
+        result = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+      }
       setNotice(result.error
         ? getAuthErrorMessage(result.error, mode)
         : mode === 'register'
@@ -68,7 +72,6 @@ export function AuthForm({ onSuccess }: Props) {
           : 'Вы вошли. Добро пожаловать обратно!');
       if (!result.error && result.data.session) {
         onSuccess?.();
-        if (mode === 'register') navigate('/profile');
       }
     } catch {
       setNotice('Нет связи с сервисом. Проверьте интернет и попробуйте снова.');
@@ -88,7 +91,7 @@ export function AuthForm({ onSuccess }: Props) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/profile`,
+          redirectTo: window.location.origin,
           skipBrowserRedirect: true,
         },
       });
