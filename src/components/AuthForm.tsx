@@ -1,5 +1,6 @@
 import { FormEvent, useId, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { getAuthErrorMessage } from '../lib/authMessages';
 
 type AuthMode = 'register' | 'login';
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,8 +21,13 @@ export function AuthForm({ onSuccess }: Props) {
   const [notice, setNotice] = useState('');
   const emailError = submitted && !emailPattern.test(email)
     ? 'Проверьте адрес — например, name@example.com.' : '';
-  const passwordError = submitted && password.length < 8
-    ? 'Добавьте ещё символы: пароль должен содержать минимум 8.' : '';
+  const passwordError = submitted && (
+    mode === 'register' ? password.length < 8 : password.length === 0
+  )
+    ? mode === 'register'
+      ? 'Добавьте ещё символы: пароль должен содержать минимум 8.'
+      : 'Введите пароль.'
+    : '';
 
   const changeMode = (nextMode: AuthMode) => {
     setMode(nextMode);
@@ -33,7 +39,8 @@ export function AuthForm({ onSuccess }: Props) {
     event.preventDefault();
     setSubmitted(true);
     setNotice('');
-    if (!emailPattern.test(email) || password.length < 8) return;
+    const isPasswordInvalid = mode === 'register' ? password.length < 8 : password.length === 0;
+    if (!emailPattern.test(email) || isPasswordInvalid) return;
     if (!isSupabaseConfigured) {
       setNotice('Сервис временно недоступен. Попробуйте немного позже.');
       return;
@@ -42,13 +49,20 @@ export function AuthForm({ onSuccess }: Props) {
     try {
       const result = mode === 'register'
         ? await supabase.auth.signUp({
-            email, password, options: { emailRedirectTo: window.location.origin },
+            email: email.trim().toLowerCase(),
+            password,
+            options: { emailRedirectTo: `${window.location.origin}/profile` },
           })
-        : await supabase.auth.signInWithPassword({ email, password });
+        : await supabase.auth.signInWithPassword({
+            email: email.trim().toLowerCase(),
+            password,
+          });
       setNotice(result.error
-        ? 'Не получилось продолжить. Проверьте данные и попробуйте ещё раз.'
+        ? getAuthErrorMessage(result.error, mode)
         : mode === 'register'
-          ? 'Готово! Проверьте почту, чтобы подтвердить аккаунт.'
+          ? result.data.session
+            ? 'Аккаунт создан. Вы вошли в приложение!'
+            : 'Аккаунт создан! Проверьте почту и перейдите по ссылке для подтверждения.'
           : 'Вы вошли. Добро пожаловать обратно!');
       if (!result.error && result.data.session) onSuccess?.();
     } catch {
@@ -70,7 +84,7 @@ export function AuthForm({ onSuccess }: Props) {
       options: { redirectTo: `${window.location.origin}/profile` },
     });
     if (error) {
-      setNotice('Не удалось войти через Google. Попробуйте ещё раз.');
+      setNotice(getAuthErrorMessage(error, 'google'));
       setBusy(false);
     }
   };
@@ -91,7 +105,7 @@ export function AuthForm({ onSuccess }: Props) {
     });
     setBusy(false);
     setNotice(error
-      ? 'Не удалось отправить письмо. Проверьте адрес и попробуйте снова.'
+      ? getAuthErrorMessage(error, 'reset')
       : 'Ссылка для восстановления отправлена на вашу почту.');
   };
 
@@ -123,18 +137,22 @@ export function AuthForm({ onSuccess }: Props) {
               onClick={handlePasswordReset} disabled={busy}>Забыли пароль?</button>}
           </div>
           <div className="password-input">
-            <input id={passwordId} type={showPassword ? 'text' : 'password'} minLength={8}
+            <input id={passwordId} type={showPassword ? 'text' : 'password'}
+              minLength={mode === 'register' ? 8 : undefined}
               autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
               placeholder="Минимум 8 символов" value={password}
               aria-invalid={Boolean(passwordError)}
-              aria-describedby={`${passwordId}-hint${passwordError ? ` ${passwordId}-error` : ''}`}
+              aria-describedby={[
+                mode === 'register' ? `${passwordId}-hint` : '',
+                passwordError ? `${passwordId}-error` : '',
+              ].filter(Boolean).join(' ') || undefined}
               onChange={(event) => setPassword(event.target.value)} />
             <button type="button" onClick={() => setShowPassword((value) => !value)}
               aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}>
               {showPassword ? 'Скрыть' : 'Показать'}
             </button>
           </div>
-          <p id={`${passwordId}-hint`} className="field__hint">Не менее 8 символов</p>
+          {mode === 'register' && <p id={`${passwordId}-hint`} className="field__hint">Не менее 8 символов</p>}
           {passwordError && <p id={`${passwordId}-error`} className="field__error"><span>!</span>{passwordError}</p>}
         </div>
         <button className="submit-button" type="submit" disabled={busy}>
