@@ -32,7 +32,8 @@
 .first-step { display: grid; margin-top: 30px; align-items: start; gap: 18px; grid-template-columns: auto 1fr; }
 .current-step-heading { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .current-step-heading h2 { margin: 0; }
-.current-step-heading__progress { display: inline-flex; align-self: center; align-items: center; justify-content: center; transform: translateY(3px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.current-step-heading__progress { display: inline-flex; align-self: center; align-items: center; justify-content: center; transform: translateY(3px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; animation: step-counter-in 440ms cubic-bezier(.16,1,.3,1) both; }
+.step-transition { animation: step-change-in 620ms cubic-bezier(.16,1,.3,1) both; }
 .first-step__number { display: grid; width: 54px; height: 54px; border-radius: 16px; color: #526d58; background: #e7ede3; font-size: 13px; font-weight: 700; place-items: center; }
 .first-step p { max-width: 620px; margin: 3px 0 0; font-size: clamp(20px,2.4vw,29px); line-height: 1.35; }
 .step-meta { display: flex; gap: 10px; margin: 24px 0 4px 72px; flex-wrap: wrap; }
@@ -56,3 +57,8 @@
 .stat-card strong { display: block; font-size: 29px; font-weight: 600; }
 .stat-card p { margin: 2px 0 0; color: #687064; font-size: 13px; }
 @keyframes card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes step-change-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes step-counter-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .step-transition,.current-step-heading__progress { animation: none; }
+}
