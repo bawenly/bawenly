@@ -10,7 +10,7 @@ import { ACTIVE_TASK_FLOW_KEY, ACTIVE_TASK_ORIGIN_KEY, FLOW_STORAGE_KEY } from '
 import { createTask } from '../lib/taskRepository';
 import { getLocalDateKey, type Task } from '../lib/tasks';
 
-export type FlowStage = 'task' | 'reason' | 'step';
+export type FlowStage = 'task' | 'reason' | 'clarify' | 'step';
 
 export function HomePage() {
   const [, setLocation] = useLocation();

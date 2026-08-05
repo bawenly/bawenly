@@ -17,6 +17,10 @@ html.app-modal-open,body.app-modal-open { overflow: hidden; overscroll-behavior:
 .app-modal__actions:empty { display: none; }
 .app-modal__actions button,.timer-task-empty button { min-height: 46px; padding: 0 18px; border: 1px solid rgba(23,32,51,.12); border-radius: 13px; color: #526d58; background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
 .app-modal__actions .app-modal__primary,.timer-task-empty .app-modal__primary { border-color: #718f76; color: #fff; background: #718f76; }
+.app-modal__actions .app-modal__danger { border-color: #a85f5f; color: #fff; background: #a85f5f; }
+.app-modal__actions .app-modal__danger:hover:not(:disabled) { border-color: #934f4f; background: #934f4f; }
+.delete-task-modal { width: min(100%,480px); }
+.delete-task-modal__error { margin: 16px 0 0; padding: 12px 14px; border-radius: 12px; color: #874747; background: #f7e9e6; font-size: 14px; line-height: 1.45; }
 .app-modal__actions button:disabled { opacity: .45; cursor: not-allowed; }
 .app-modal__form { display: grid; gap: 9px; }
 .app-modal__form label { color: #687064; font-size: 13px; font-weight: 700; }

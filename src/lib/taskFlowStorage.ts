@@ -38,7 +38,7 @@ export type TodayPlan = {
 };
 
 export type TaskFlowState = {
-  stage: 'reason' | 'step';
+  stage: 'reason' | 'clarify' | 'step';
   viewedStepIndex: number;
   showCompletion: boolean;
 };

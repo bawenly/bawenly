@@ -41,7 +41,8 @@ Return only JSON: {"message":"short calm intro or supportive phrase","options":[
     if (!item || typeof item !== 'object') return [];
     const value = item as Record<string, unknown>;
     if (typeof value.label !== 'string' || typeof value.intent !== 'string') return [];
-    return [{ id: typeof value.id === 'string' ? value.id.slice(0, 40) : `option-${index}`,
+    const baseId = typeof value.id === 'string' ? value.id.slice(0, 36) : 'option';
+    return [{ id: `${baseId}-${index}`,
       label: value.label.trim().slice(0, 60), intent: value.intent.trim().slice(0, 240) }];
   }) : [];
   return { message: typeof parsed.message === 'string' ? parsed.message.trim().slice(0, 180) : '', options };

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createStepSupport, resolveStepSupport } from '../lib/stepSupport';
 import { useLanguage } from './LanguageProvider';
 import type { StepSupport } from '../lib/tasks';
 
-const STORAGE_KEY = 'baw-step-support-v1';
+const STORAGE_KEY = 'baw-step-support-v2';
 type SavedOption = { id: string; label: string; intent: string; result?: string };
 type SavedHelp = { message: string; options: SavedOption[]; selectedId?: string; result?: string };
 type HelpStore = Record<string, SavedHelp>;
@@ -30,19 +30,38 @@ export function StepSupportPanel({ context }: { context: ActiveStepSupport }) {
   const prepared = context.preparedSupport;
   const saved = store[cacheKey];
   const contextKey = useMemo(() => JSON.stringify(context), [context]);
+  const [showDetail, setShowDetail] = useState(Boolean(saved?.selectedId));
+  const [isExiting, setIsExiting] = useState(false);
+  const transitionTimer = useRef<number | null>(null);
+  const selectionAttempt = useRef(0);
+
+  useEffect(() => {
+    setShowDetail(Boolean(store[cacheKey]?.selectedId));
+    setIsExiting(false);
+    return () => {
+      if (transitionTimer.current !== null) window.clearTimeout(transitionTimer.current);
+    };
+  }, [cacheKey]);
 
   useEffect(() => {
     if (saved) return;
     if (prepared) {
       setStore((current) => ({ ...current, [cacheKey]: { message: prepared.message,
-        options: prepared.options.map((option) => ({ ...option, intent: '' })) } }));
+        options: prepared.options.map((option, index) => ({
+          ...option, id: `${option.id || 'option'}-${index}`, intent: '',
+        })) } }));
       return;
     }
     let active = true;
     setLoading(true); setError('');
     void createStepSupport(context).then((suggestion) => {
       if (!active) return;
-      setStore((current) => ({ ...current, [cacheKey]: suggestion }));
+      setStore((current) => ({ ...current, [cacheKey]: {
+        ...suggestion,
+        options: suggestion.options.map((option, index) => ({
+          ...option, id: `${option.id || 'option'}-${index}`,
+        })),
+      } }));
     }).catch((caught: unknown) => {
       if (active) setError(caught instanceof Error ? caught.message : '');
     }).finally(() => { if (active) setLoading(false); });
@@ -52,11 +71,16 @@ export function StepSupportPanel({ context }: { context: ActiveStepSupport }) {
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }, [store]);
 
   async function selectOption(option: SavedOption) {
-    const preparedOption = prepared?.options.find((item) => item.id === option.id);
-    if (preparedOption) {
+    if (loading || isExiting || saved?.selectedId === option.id) return;
+    const attempt = ++selectionAttempt.current;
+    setIsExiting(true);
+    transitionTimer.current = window.setTimeout(() => {
+      setShowDetail(true);
+      setIsExiting(false);
+    }, 200);
+    if (option.result !== undefined) {
       setStore((current) => ({ ...current, [cacheKey]: {
-        message: prepared?.message ?? '', options: (prepared?.options ?? []).map((item) => ({ ...item, intent: '' })),
-        selectedId: option.id, result: preparedOption.result,
+        ...current[cacheKey], selectedId: option.id, result: option.result,
       } }));
       return;
     }
@@ -65,30 +89,53 @@ export function StepSupportPanel({ context }: { context: ActiveStepSupport }) {
     setLoading(true); setError('');
     try {
       const result = await resolveStepSupport(context, option);
+      if (selectionAttempt.current !== attempt) return;
       setStore((current) => ({ ...current, [cacheKey]: { ...current[cacheKey], selectedId: option.id, result } }));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '');
-    } finally { setLoading(false); }
+      if (selectionAttempt.current === attempt) setError(caught instanceof Error ? caught.message : '');
+    } finally { if (selectionAttempt.current === attempt) setLoading(false); }
   }
+
+  function showAllOptions() {
+    if (isExiting) return;
+    selectionAttempt.current += 1;
+    setLoading(false);
+    setIsExiting(true);
+    transitionTimer.current = window.setTimeout(() => {
+      setStore((current) => ({ ...current, [cacheKey]: {
+        ...current[cacheKey], selectedId: undefined, result: undefined,
+      } }));
+      setShowDetail(false);
+      setIsExiting(false);
+    }, 200);
+  }
+
+  const loadingIndicator = <span className="step-support__loading" role="status"
+    aria-label={language === 'en' ? 'Loading' : 'Загрузка'}><i /><i /><i /></span>;
 
   const selected = saved?.options.find((option) => option.id === saved.selectedId);
   return (
     <aside className="support-card support-card--done step-support" aria-live="polite">
       <p className="eyebrow">{language === 'en' ? 'Help for this step' : 'Помощь для этого шага'}</p>
-      {selected ? <>
+      <div className={`step-support__content${isExiting ? ' step-support__content--exit' : ''}`}>
+      {showDetail && selected ? <>
         <button className="step-support__back" type="button"
-          onClick={() => setStore((current) => ({ ...current, [cacheKey]: { ...current[cacheKey], selectedId: undefined, result: undefined } }))}>
+          disabled={isExiting} onClick={showAllOptions}>
           ← {language === 'en' ? 'All options' : 'Все варианты'}
         </button>
         <h2>{selected.label}</h2>
-        {loading && !saved?.result ? <p>{language === 'en' ? 'Preparing help…' : 'Готовлю помощь…'}</p>
+        {loading && !saved?.result ? <div className="step-support__loading-row">{loadingIndicator}
+          <span>{language === 'en' ? 'Preparing help…' : 'Готовлю помощь…'}</span></div>
           : <p className="step-support__result">{saved?.result}</p>}
       </> : <>
         <h2>{saved?.message || (language === 'en' ? 'What would make this step easier?' : 'Что поможет с этим шагом?')}</h2>
-        {loading && !saved ? <p>{language === 'en' ? 'Finding useful options…' : 'Подбираю полезные варианты…'}</p> : null}
+        {loading && !saved ? <div className="step-support__loading-row">{loadingIndicator}
+          <span>{language === 'en' ? 'Finding useful options…' : 'Подбираю полезные варианты…'}</span></div> : null}
         {saved?.options.length ? <div className="step-support__options">
           {saved.options.map((option) => <button type="button" key={option.id}
-            onClick={() => void selectOption(option)}>{option.label}<span aria-hidden="true">→</span></button>)}
+            className={saved.selectedId === option.id ? 'step-support__option--selected' : undefined}
+            disabled={loading || isExiting} onClick={() => void selectOption(option)}>
+            {option.label}<span aria-hidden="true">→</span></button>)}
         </div> : null}
       </>}
       {error && <p className="ai-error" role="alert">{error}</p>}
@@ -96,6 +143,7 @@ export function StepSupportPanel({ context }: { context: ActiveStepSupport }) {
         onClick={() => { setStore((current) => { const next = { ...current }; delete next[cacheKey]; return next; }); setError(''); }}>
         {language === 'en' ? 'Try again' : 'Попробовать ещё раз'}
       </button>}
+      </div>
     </aside>
   );
 }

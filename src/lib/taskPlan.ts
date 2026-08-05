@@ -1,10 +1,11 @@
 import { createTaskScenario } from './ai';
 import { persistTask } from './taskRepository';
 import type { Task } from './tasks';
+import type { ClarificationAnswer } from './taskClarification';
 
 const requests = new Map<string, Promise<Task>>();
 
-export function generateAndSaveTaskPlan(task: Task, reason: string) {
+export function generateAndSaveTaskPlan(task: Task, reason: string, clarifications: ClarificationAnswer[] = []) {
   const running = requests.get(task.id);
   if (running) return running;
 
@@ -14,7 +15,7 @@ export function generateAndSaveTaskPlan(task: Task, reason: string) {
     stepsGeneration: 'loading',
   };
   const request = persistTask(loadingTask).catch(() => loadingTask)
-    .then(() => createTaskScenario(task.title, reason))
+    .then(() => createTaskScenario(task.title, reason, clarifications))
     .then(async ({ steps, finalState }) => {
       const completedTask: Task = {
         ...loadingTask,

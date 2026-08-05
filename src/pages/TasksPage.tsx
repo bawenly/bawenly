@@ -7,6 +7,7 @@ import { getLocalDateKey, loadStoredTasks, TASKS_STORAGE_KEY, type Task, type Ta
 import { useAuthModal } from '../components/AuthModal';
 import { loadUserTasks, persistTask, removeTask } from '../lib/taskRepository';
 import { ACTIVE_TASK_FLOW_KEY, ACTIVE_TASK_ORIGIN_KEY, PENDING_TASK_KEY } from '../lib/taskFlowStorage';
+import { DeleteTaskDialog } from '../components/DeleteTaskDialog';
 
 const filters: { value: TaskFilter; label: string }[] = [
   { value: 'all', label: 'Все' },
@@ -23,6 +24,7 @@ export function TasksPage() {
   const [filter, setFilter] = useState<TaskFilter>('all');
   const [query, setQuery] = useState('');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
@@ -107,14 +109,16 @@ export function TasksPage() {
           {visibleTasks.map((task) => (
             <TaskCard task={task} key={task.id} onChange={updateTask}
               onContinue={() => requestContinue(task)}
-              onDelete={() => {
-                setTasks((current) => current.filter((item) => item.id !== task.id));
-                void removeTask(task.id);
-              }} />
+              onDelete={() => setTaskToDelete(task)} />
           ))}
           {visibleTasks.length === 0 && <div className="tasks-empty">Здесь пока тихо. Можно выбрать другой фильтр или добавить задачу.</div>}
         </section>
       </main>
+      {taskToDelete && <DeleteTaskDialog task={taskToDelete} onCancel={() => setTaskToDelete(null)}
+        onConfirm={async (taskId) => {
+          await removeTask(taskId);
+          setTasks((current) => current.filter((task) => task.id !== taskId));
+        }} />}
     </div>
   );
 }

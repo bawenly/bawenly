@@ -9,7 +9,7 @@ import type { FlowStage } from '../pages/HomePage';
 type Props = {
   plan: TodayPlan;
   isLoading: boolean;
-  stage: Exclude<FlowStage, 'task'>;
+  stage: Exclude<FlowStage, 'task' | 'clarify'>;
   error?: string;
   onReasonSelect: (reason: string) => void;
   onRetry: () => void;

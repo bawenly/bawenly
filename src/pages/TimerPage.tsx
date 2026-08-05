@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { DashboardHeader } from '../components/DashboardHeader';
+import { TimerDial } from '../components/TimerDial';
 import { TimerHistory } from '../components/TimerHistory';
 import { TimerAiAdvice } from '../components/TimerAiAdvice';
 import { useTimer } from '../components/TimerProvider';
 import { TimerTaskPicker } from '../components/TimerTaskPicker';
 import { loadStoredTasks } from '../lib/tasks';
-import { formatTimer, type TimerMode } from '../lib/timer';
+import { type TimerMode } from '../lib/timer';
 
 export function TimerPage() {
   const timer = useTimer();
@@ -30,8 +31,7 @@ export function TimerPage() {
       <DashboardHeader />
       <main className="timer-shell">
         <header className="timer-page-heading">
-          <span className="tasks-eyebrow">Таймер</span>
-          <h1 className="cormorant-heading">Сосредоточься на одном шаге</h1>
+          <h1 className="cormorant-heading cormorant-heading--prominent">Сосредоточься на одном шаге</h1>
           <p>Выбери свободный отсчёт или спокойный ритм 25/5.</p>
         </header>
 
@@ -59,7 +59,7 @@ export function TimerPage() {
             <span>{timer.state.mode === 'focus'
               ? `${timer.state.phase === 'work' ? 'Фокус' : 'Отдых'} · цикл ${((timer.state.focusRound - 1) % 4) + 1} из 4`
               : 'Свободный отсчёт'}</span>
-            <strong aria-live="polite">{formatTimer(timer.displaySeconds)}</strong>
+            <TimerDial state={timer.state} displaySeconds={timer.displaySeconds} />
             <p>{timer.state.mode === 'focus'
               ? timer.state.phase === 'work'
                 ? `После этого — ${timer.state.focusRound % 4 === 0 ? '15' : '5'} минут отдыха`

@@ -24,11 +24,21 @@
 .done-mark { display: grid; width: 62px; height: 62px; margin-bottom: 24px; border-radius: 50%; color: #526d58; background: #e7ede3; font-size: 24px; place-items: center; }
 .step-support { justify-content: flex-start; white-space: normal; }
 .step-support .eyebrow { margin: 0 0 12px; color: #718f76; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.step-support__content { min-height: 300px; animation: step-support-in 220ms ease-out both; }
+.step-support__content--exit { pointer-events: none; animation: step-support-out 200ms ease-in both; }
 .step-support__options { display: grid; width: 100%; margin-top: 18px; gap: 9px; }
-.step-support__options button { display: flex; min-height: 50px; padding: 12px 14px; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(23,32,51,.09); border-radius: 15px; color: #172033; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.step-support__options button { display: flex; min-height: 50px; padding: 12px 14px; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(23,32,51,.09); border-radius: 15px; color: #172033; background: #fff; font: inherit; text-align: left; cursor: pointer; transition: border-color 200ms ease, background 200ms ease, box-shadow 200ms ease, transform 200ms ease; }
 .step-support__options button:hover { border-color: rgba(82,109,88,.35); background: #f7f4ed; }
+.step-support__options button:active { transform: translateY(1px); }
+.step-support__options button.step-support__option--selected { border-color: #718f76; background: #e7ede3; box-shadow: 0 0 0 2px rgba(113,143,118,.12); }
+.step-support__options button:disabled { cursor: default; }
 .step-support__back { margin: 0 0 18px; padding: 0; border: 0; color: #526d58; background: transparent; font: inherit; font-size: 13px; cursor: pointer; }
 .step-support__result { margin: 8px 0 0; color: #525b51; line-height: 1.6; white-space: pre-wrap; }
+.step-support__loading-row { display: flex; min-height: 52px; margin-top: 8px; align-items: center; gap: 12px; color: #687064; }
+.step-support__loading { display: flex; gap: 5px; }
+.step-support__loading i { width: 7px; height: 7px; border-radius: 50%; background: #718f76; opacity: .25; animation: step-support-dot 1.2s ease-in-out infinite; }
+.step-support__loading i:nth-child(2) { animation-delay: 140ms; }
+.step-support__loading i:nth-child(3) { animation-delay: 280ms; }
 .first-step { display: grid; margin-top: 30px; align-items: start; gap: 18px; grid-template-columns: auto 1fr; }
 .current-step-heading { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .current-step-heading h2 { margin: 0; }
@@ -59,6 +69,11 @@
 @keyframes card-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes step-change-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes step-counter-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes step-support-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes step-support-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(5px); } }
+@keyframes step-support-dot { 0%, 70%, 100% { opacity: .25; } 35% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .step-transition,.current-step-heading__progress { animation: none; }
+  .step-support__content,.step-support__content--exit { transform: none; animation-duration: 80ms; }
+  .step-support__loading i { animation-name: step-support-dot; }
 }

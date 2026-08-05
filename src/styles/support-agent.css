@@ -1,6 +1,4 @@
 .task-card__start-actions { display: flex; align-items: center; gap: 10px; }
-.support-action { min-height: 54px; padding: 0 18px; border: 1px solid #d8d1c8; border-radius: 15px; color: #526d58; background: #fff; font: inherit; font-weight: 600; cursor: pointer; transition: border 180ms,background 180ms,transform 180ms; }
-.support-action:hover { border-color: #718f76; background: #f7f4ed; transform: translateY(-1px); }
 .support-agent-shell { width: min(760px,calc(100% - 32px)); margin: 0 auto; padding: 52px 0 72px; }
 .support-agent-heading { margin-bottom: 24px; }
 .support-agent-heading h1 { margin: 8px 0 10px; font-size: clamp(30px,5vw,48px); letter-spacing: -.045em; }

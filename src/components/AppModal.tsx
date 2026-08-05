@@ -9,21 +9,22 @@ type Props = {
   children: ReactNode | ((requestClose: RequestModalClose) => ReactNode);
   actions: ReactNode | ((requestClose: RequestModalClose) => ReactNode);
   className?: string;
+  closeDisabled?: boolean;
 };
 
 const CLOSE_DURATION = 220;
 
-export function AppModal({ title, onClose, children, actions, className = '' }: Props) {
+export function AppModal({ title, onClose, children, actions, className = '', closeDisabled = false }: Props) {
   const titleId = useId();
   const [isClosing, setIsClosing] = useState(false);
   const closingRef = useRef(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const requestClose = useCallback<RequestModalClose>((afterClose) => {
-    if (closingRef.current) return;
+    if (closingRef.current || closeDisabled) return;
     closingRef.current = true;
     setIsClosing(true);
     window.setTimeout(() => (afterClose ?? onClose)(), CLOSE_DURATION);
-  }, [onClose]);
+  }, [closeDisabled, onClose]);
 
   useEffect(() => {
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -46,7 +47,7 @@ export function AppModal({ title, onClose, children, actions, className = '' }: 
       <section className={`app-modal ${className}`.trim()} role="dialog" aria-modal="true" aria-labelledby={titleId}>
         <header className="app-modal__header">
           <h2 id={titleId}>{title}</h2>
-          <button type="button" onClick={() => requestClose()} disabled={isClosing} aria-label="Закрыть">×</button>
+          <button type="button" onClick={() => requestClose()} disabled={isClosing || closeDisabled} aria-label="Закрыть">×</button>
         </header>
         <div className="app-modal__content" ref={contentRef} tabIndex={0}>
           {typeof children === 'function' ? children(requestClose) : children}

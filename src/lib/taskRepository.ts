@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { loadStoredTasks, saveStoredTask, TASKS_STORAGE_KEY, type Task, type TaskStep } from './tasks';
+import { clearDeletedTaskData } from './taskDeletion';
 
 type TaskRow = {
   id: string;
@@ -85,6 +86,15 @@ export async function persistTask(task: Task) {
   return task;
 }
 
+export async function persistTaskStatus(task: Task) {
+  saveStoredTask(task);
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return task;
+  const { error } = await supabase.from('tasks').upsert(taskPayload(task, data.user.id));
+  if (error) throw error;
+  return task;
+}
+
 export async function loadUserTasks() {
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) return loadStoredTasks();
@@ -125,11 +135,13 @@ export async function loadUserTasks() {
 }
 
 export async function removeTask(taskId: string) {
-  const tasks = loadStoredTasks().filter((task) => task.id !== taskId);
-  window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
   const { data } = await supabase.auth.getUser();
   if (data.user) {
     const { error } = await supabase.from('tasks').delete().eq('id', taskId);
     if (error) throw error;
   }
+  const tasks = loadStoredTasks().filter((task) => task.id !== taskId);
+  window.localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+  clearDeletedTaskData(taskId);
+  window.dispatchEvent(new CustomEvent('baw-tasks-changed'));
 }

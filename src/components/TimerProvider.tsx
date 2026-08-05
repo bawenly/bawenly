@@ -5,7 +5,7 @@ import {
   type TimerMode, type TimerSession, type TimerState,
 } from '../lib/timer';
 import { loadStoredTasks, TASKS_STORAGE_KEY, type TaskStep } from '../lib/tasks';
-import { persistTask } from '../lib/taskRepository';
+import { persistTask, persistTaskStatus } from '../lib/taskRepository';
 
 type TimerContextValue = {
   state: TimerState;
@@ -60,9 +60,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   const [isFinishingStep, setIsFinishingStep] = useState(false);
   const finishLock = useRef(false);
 
-  const elapsedSeconds = state.accumulatedSeconds + (
-    state.isRunning && state.startedAt ? Math.floor((now - state.startedAt) / 1000) : 0
-  );
+  const runningSeconds = state.isRunning && state.startedAt
+    ? Math.max(0, Math.floor((now - state.startedAt) / 1000))
+    : 0;
+  const elapsedSeconds = state.accumulatedSeconds + runningSeconds;
   const duration = state.phase === 'work'
     ? state.targetSeconds ?? FOCUS_SECONDS
     : state.focusRound % 4 === 0 ? LONG_BREAK_SECONDS : BREAK_SECONDS;
@@ -80,6 +81,16 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }, [sessions]);
 
   useEffect(() => {
+    const clearDeletedTask = (event: Event) => {
+      const taskId = (event as CustomEvent<{ taskId: string }>).detail.taskId;
+      setState((current) => current.taskId === taskId ? initialTimerState : current);
+      setSessions((current) => current.filter((session) => session.taskId !== taskId));
+    };
+    window.addEventListener('baw-task-deleted', clearDeletedTask);
+    return () => window.removeEventListener('baw-task-deleted', clearDeletedTask);
+  }, []);
+
+  useEffect(() => {
     if (!state.isRunning) return;
     setNow(Date.now());
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
@@ -90,15 +101,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     if (state.mode !== 'focus' || !state.isRunning || elapsedSeconds < duration) return;
     if (state.phase === 'work' && state.targetSeconds) {
       saveSession(duration);
-      const nextStep = completeCurrentStep();
-      setState((current) => nextStep ? ({
+      const hasNextStep = Boolean(completeCurrentStep());
+      setState((current) => hasNextStep ? ({
         ...initialTimerState,
-        mode: current.mode,
+        mode: 'focus',
         taskId: current.taskId,
         taskTitle: current.taskTitle,
-        stepId: nextStep.id,
-        stepTitle: nextStep.title,
-        targetSeconds: nextStep.minutes * 60,
       }) : ({ ...initialTimerState, mode: current.mode }));
       return;
     }
@@ -168,44 +176,41 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     selectTask: (taskId, taskTitle) => setState((current) => ({
       ...current, taskId, taskTitle, stepId: '', stepTitle: '', targetSeconds: null,
     })),
-    startStep: (taskId, taskTitle, step) => setState((current) => {
-      if (current.isRunning && current.taskId && current.taskId !== taskId) return current;
+    startStep: (taskId, taskTitle, step) => {
+      if (state.isRunning && state.taskId && state.taskId !== taskId) return;
+      if (state.taskId === taskId && state.stepId === step.id && state.targetSeconds !== null) return;
       const task = loadStoredTasks().find((item) => item.id === taskId);
-      if (task) void persistTask({ ...task, status: 'in_progress', statusBeforePause: undefined });
-      return {
-        ...initialTimerState, mode: current.mode, taskId, taskTitle,
+      if (task) void persistTaskStatus({ ...task, status: 'in_progress', statusBeforePause: undefined });
+      setNow(Date.now());
+      setState({
+        ...initialTimerState, mode: 'focus', taskId, taskTitle,
         stepId: step.id, stepTitle: step.title, targetSeconds: step.minutes * 60,
         isRunning: true, startedAt: Date.now(),
-      };
-    }),
+      });
+    },
     setMode: (mode) => setState((current) => ({
       ...initialTimerState, mode, taskId: current.taskId, taskTitle: current.taskTitle,
     })),
-    toggle: () => setState((current) => {
+    toggle: () => {
       const actionTime = Date.now();
-      if (!current.isRunning) {
-        const task = loadStoredTasks().find((item) => item.id === current.taskId);
-        if (task) void persistTask({ ...task, status: 'in_progress' });
-        return { ...current, isRunning: true, startedAt: actionTime };
+      setNow(actionTime);
+      const task = loadStoredTasks().find((item) => item.id === state.taskId);
+      if (!state.isRunning) {
+        if (task) void persistTaskStatus({ ...task, status: 'in_progress' });
+        setState({ ...state, isRunning: true, startedAt: actionTime });
+        return;
       }
-      const currentInterval = current.startedAt
-        ? Math.floor((actionTime - current.startedAt) / 1000)
+      const currentInterval = state.startedAt
+        ? Math.max(0, Math.floor((actionTime - state.startedAt) / 1000))
         : 0;
-      const accumulatedSeconds = current.accumulatedSeconds + currentInterval;
-      const task = loadStoredTasks().find((item) => item.id === current.taskId);
-      if (task) {
-        const steps = task.steps?.map((step) => step.id === current.stepId
-          ? { ...step, actualSeconds: (step.actualSeconds ?? 0) + currentInterval }
-          : step);
-        void persistTask({ ...task, status: 'paused', statusBeforePause: 'in_progress', steps });
-      }
-      return {
-        ...current,
+      if (task) void persistTaskStatus({ ...task, status: 'paused', statusBeforePause: 'in_progress' });
+      setState({
+        ...state,
         isRunning: false,
         startedAt: null,
-        accumulatedSeconds,
-      };
-    }),
+        accumulatedSeconds: state.accumulatedSeconds + currentInterval,
+      });
+    },
     reset: () => setState((current) => ({
       ...initialTimerState, mode: current.mode, taskId: current.taskId, taskTitle: current.taskTitle,
     })),
@@ -224,15 +229,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       finishLock.current = true;
       setIsFinishingStep(true);
       if (state.phase === 'work') saveSession(elapsedSeconds);
-      const nextStep = completeCurrentStep();
-      setState((current) => nextStep ? ({
+      const hasNextStep = Boolean(completeCurrentStep());
+      setState((current) => hasNextStep ? ({
         ...initialTimerState,
-        mode: current.mode,
+        mode: 'focus',
         taskId: current.taskId,
         taskTitle: current.taskTitle,
-        stepId: nextStep.id,
-        stepTitle: nextStep.title,
-        targetSeconds: nextStep.minutes * 60,
       }) : ({ ...initialTimerState, mode: current.mode }));
       window.setTimeout(() => {
         finishLock.current = false;

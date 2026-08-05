@@ -2,6 +2,8 @@ import { supabase } from './supabase';
 import type { TaskStep } from './tasks';
 import type { TimerSession } from './timer';
 import { currentLanguage } from './locale';
+import { taskDecompositionPrompt } from './taskDecompositionPrompt';
+import type { ClarificationAnswer, ClarificationQuestion } from './taskClarification';
 
 const coachSystem = `Ты добрый помощник по продуктивности для подростка.
 Пиши по-русски, коротко и конкретно. Не стыди и не ставь диагнозы.
@@ -49,32 +51,42 @@ export async function clarifyTask(title: string) {
 
 export type TaskScenario = { steps: TaskStep[]; finalState: string };
 
-export async function createTaskScenario(title: string, reason?: string): Promise<TaskScenario> {
+export async function createClarifyingQuestions(title: string, reason: string): Promise<ClarificationQuestion[]> {
+  const response = parseJson<{ questions?: unknown }>(await askAi(`Проанализируй задачу и причину прокрастинации.
+Задача: ${JSON.stringify(title.trim())}
+Причина: ${JSON.stringify(reason.trim())}
+Определи, каких данных действительно не хватает для качественного пошагового плана. Задавай вопрос только если ответ заметно изменит шаги, их порядок или длительность. Не повторяй уже указанное, не спрашивай очевидное и не используй универсальный шаблон. Если данных достаточно, верни пустой массив. Максимум 3 коротких вопроса.
+Для необязательного вопроса поставь required false: интерфейс позволит его пропустить. type: text, number или choice. Для choice дай 2–5 коротких вариантов на языке пользователя. Для text/number можно дать короткий placeholder.
+Верни только JSON: {"questions":[{"id":"short-id","label":"вопрос","type":"text","required":true,"placeholder":"короткая подсказка","options":[]}]}`));
+  if (!Array.isArray(response.questions)) throw new Error('ИИ не смог подготовить уточнения.');
+  return response.questions.slice(0, 3).map((item, index) => {
+    const value = item as Record<string, unknown>;
+    const type = value.type === 'number' || value.type === 'choice' ? value.type : 'text';
+    if (typeof value.label !== 'string' || !value.label.trim()) throw new Error('ИИ вернул неполный вопрос.');
+    const options = Array.isArray(value.options)
+      ? value.options.filter((option): option is string => typeof option === 'string' && Boolean(option.trim())).slice(0, 5)
+      : undefined;
+    return { id: typeof value.id === 'string' ? value.id.slice(0, 40) : `question-${index}`,
+      label: value.label.trim().slice(0, 140), type: type === 'choice' && !options?.length ? 'text' : type,
+      required: value.required !== false,
+      placeholder: typeof value.placeholder === 'string' ? value.placeholder.trim().slice(0, 80) : undefined,
+      options };
+  });
+}
+
+export async function createTaskScenario(title: string, reason?: string,
+  clarifications: ClarificationAnswer[] = []): Promise<TaskScenario> {
   const taskTitle = title.trim();
   if (!taskTitle) throw new Error('Напиши задачу — можно всего пару слов.');
   const reasonContext = reason?.trim()
     ? `Пользователю мешает начать: "${reason.trim()}". Используй это как контекст, но не повторяй причину механически в шагах.`
     : '';
-  const createPlanResponse = () => askAi(`Составь практичный план выполнения только этой задачи: ${JSON.stringify(taskTitle)}.
-${reasonContext}
-Не заменяй задачу примером, похожей задачей или задачей про подготовку к тесту. Каждый шаг должен относиться именно к переданному тексту задачи.
-Адаптируй подход к препятствию пользователя, но не называй и не повторяй его механически. При страхе ошибки начни с безопасного чернового результата; при непонимании сначала получи ясный критерий результата и конкретный список недостающих сведений; при перегруженности выдели один приоритетный посильный участок; при нехватке энергии предложи короткий, но содержательный старт без чрезмерного упрощения.
-Учитывай препятствие при формулировке, последовательности, объёме и отдельной оценке времени каждого шага.
-Количество шагов выбери по реальной сложности задачи: простая задача может состоять из 1–2 шагов, объёмная — из большего числа, но не более 8.
-Строго соблюдай масштаб формулировки: «короткая» и «небольшой» обычно требуют 3–5 шагов и до 120 минут суммарно; «начать» — 2–5 шагов только до первого содержательного чернового результата, а не план полного завершения большой работы. Не добавляй работу сверх результата, который запросил пользователь.
-Создавай логичные, конкретные и последовательные шаги среднего размера. Начни с лёгкого, но содержательного действия, которое действительно запускает работу.
-Каждый шаг начинай с глагола действия и ясно указывай видимый или измеримый промежуточный результат.
-Не создавай микрошаги вроде «открыть документ», «подумать о задаче» или «найти информацию» без уточнения ожидаемого результата.
-Если соседние действия занимают по несколько минут и по отдельности не дают ценного результата, объедини их. Не назначай первому шагу стандартные две минуты.
-Если шаг требует нескольких разных содержательных действий, имеет неясный результат или не помещается в комфортный рабочий отрезок, раздели его на последовательные шаги.
-Выстрой шаги так, чтобы результат каждого естественно становился основой следующего.
-Для каждого шага отдельно рассчитай реалистичное время по его содержанию и ожидаемому результату. Обычно один шаг должен занимать 5–45 минут; если содержательная работа требует больше 45 минут, раздели её на последовательные шаги. Не завышай простые действия, не занижай содержательную работу и не повторяй одну длительность механически.
-Для каждого шага заранее подготовь дополнительную помощь. Выбери 2–3 действительно полезных варианта по содержанию шага и причине: конкретный материал или мини-пример, точный поисковый запрос с критериями источников, вопросы для размышления, упражнение или короткую практику поддержки. В поле result сразу дай готовую помощь, чтобы для её показа не требовался новый запрос.
-Перед ответом молча проверь каждый шаг: (1) действие конкретно; (2) результат видим или измерим; (3) шаг не слишком мелкий; (4) в нём нет слишком многих разных действий; (5) время реалистично; (6) он продолжает предыдущий результат. Шаг, не прошедший проверку, переформулируй, раздели или объедини до возврата JSON.
-Опиши finalState — короткое ясное состояние, которое увидит пользователь после последнего шага и по которому поймёт, что задача завершена.
-Верни только JSON-объект: {"taskTitle":${JSON.stringify(taskTitle)},"steps":[{"title":"действие","minutes":10,"support":{"message":"короткое спокойное вступление","options":[{"id":"material","label":"короткая подпись","result":"готовая конкретная помощь"}]}}],"finalState":"конкретный итог выполненной задачи"}.
-Поле taskTitle скопируй из запроса абсолютно точно, без исправлений и перефразирования.
-minutes — реалистичное целое число от 1 до 180.`);
+  const clarificationContext = clarifications.length
+    ? `Уточняющие ответы пользователя: ${JSON.stringify(clarifications)}. Используй их во всех практических шагах, дополнительной помощи и расчёте времени. Не добавляй противоречащих им предположений.`
+    : '';
+  const createPlanResponse = () => askAi(taskDecompositionPrompt({
+    taskTitle, reasonContext: [reasonContext, clarificationContext].filter(Boolean).join('\n'),
+  }));
 
   let response = parseJson<{ taskTitle?: unknown; steps?: unknown; finalState?: unknown }>(await createPlanResponse());
   if (response.taskTitle !== taskTitle) {
@@ -100,7 +112,8 @@ minutes — реалистичное целое число от 1 до 180.`);
         || !value.label.trim() || !value.result.trim()) {
         throw new Error('ИИ вернул неполную помощь для шага. Попробуй составить план ещё раз.');
       }
-      return { id: typeof value.id === 'string' ? value.id.slice(0, 40) : `option-${index}`,
+      const baseId = typeof value.id === 'string' ? value.id.slice(0, 36) : 'option';
+      return { id: `${baseId}-${index}`,
         label: value.label.trim().slice(0, 60), result: value.result.trim().slice(0, 1000) };
     });
     return {

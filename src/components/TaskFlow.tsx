@@ -7,6 +7,7 @@ import { persistTask, removeTask } from '../lib/taskRepository';
 import type { FlowStage } from '../pages/HomePage';
 import { useAuthModal } from './AuthModal';
 import { useTimer } from './TimerProvider';
+import { useLanguage } from './LanguageProvider';
 import { FlowNavigation } from './FlowNavigation';
 import { clearStepSupport, type ActiveStepSupport } from './StepSupportPanel';
 import { ACTIVE_TASK_FLOW_KEY, clearTaskPlan, loadTaskFlowState, loadTaskPlan,
@@ -41,6 +42,7 @@ export function TaskFlow({
   const [, setLocation] = useLocation();
   const { openAuth } = useAuthModal();
   const timer = useTimer();
+  const { language } = useLanguage();
   const returnLock = useRef(false);
   const restoreViewedStep = useRef(Boolean(externalPlan && loadTaskFlowState(externalPlan.taskId)));
   const generationPromise = useRef<Promise<void> | null>(null);
@@ -85,7 +87,7 @@ export function TaskFlow({
   useEffect(() => {
     if (!currentPlan || workspace !== 'tasks') return;
     saveTaskFlowState(currentPlan.taskId, {
-      stage: stage === 'reason' ? 'reason' : 'step',
+      stage: stage === 'reason' ? 'reason' : stage === 'clarify' ? 'clarify' : 'step',
       viewedStepIndex,
       showCompletion,
     });
@@ -233,7 +235,6 @@ export function TaskFlow({
 
   function startCurrentStep() {
     if (!viewedStep || !isViewingCurrentStep) return;
-    timer.setMode('focus');
     timer.startStep(currentPlan?.taskId ?? '', task, viewedStep);
   }
 
@@ -379,7 +380,7 @@ export function TaskFlow({
             <button className="primary-action" type="button" disabled={!viewedStep || externalPlanLoading
               || (timer.state.isRunning && timer.state.taskId !== currentPlan?.taskId)}
               onClick={isViewingCurrentStep ? startCurrentStep : goToNextStep}>
-              {isViewingCurrentStep ? 'Начать' : 'Дальше'} <span aria-hidden="true">→</span>
+              {isViewingCurrentStep ? (language === 'en' ? 'Start' : 'Начать') : 'Дальше'} <span aria-hidden="true">→</span>
             </button>
           )}
           <button className="text-action" type="button" disabled={!currentStep || isLoading || externalPlanLoading}
@@ -418,9 +419,6 @@ export function TaskFlow({
             {error || 'Enter — продолжить, Shift + Enter — новая строка'}
           </span>
           <div className="task-card__start-actions">
-            <button className="support-action" type="button" onClick={() => setLocation('/support')}>
-              Мне нужна поддержка
-            </button>
             <button className="primary-action" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Создаю задачу…' : 'Помоги мне начать'} <span aria-hidden="true">→</span>
             </button>
